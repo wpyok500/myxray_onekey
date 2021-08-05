@@ -5,3 +5,7 @@ xray VLESS over TCP with XTLS + 回落 &amp; 分流 to WHATEVER（终极配置�
 ```
 wget -N --no-check-certificate -q "https://raw.githubusercontent.com/wpyok500/myxray_onekey/main/myxray.sh" && chmod +x myxray.sh && bash myxray.sh
 ```
+下载后重新启动脚本，可用如下命令直接调用
+```
+bash myxray.sh
+```
