@@ -13,6 +13,9 @@ Blue="\033[34m"
 EndColor="\033[0m"
 xray_conf_dir="/usr/local/etc/xray"
 cronpath="/var/spool/cron/crontabs"
+isins=0 #是否检查系统
+isnginx=0 #是否重启nginx
+
 
 function print_ok() {
   echo -e "${Blue}$1${EndColor}"
@@ -46,10 +49,28 @@ function change_web() {
   echo -e  "${Blue}伪装站点更换完成${EndColor}"
 }
 
+function nginx_install() {
+  if ! command -v nginx >/dev/null 2>&1; then
+    ${INS} nginx
+    judge "Nginx 安装"
+  else
+    print_ok "Nginx 已存在"
+    ${INS} nginx
+  fi
+  # 遗留问题处理
+  mkdir -p /etc/nginx/conf.d >/dev/null 2>&1
+}
+
 function install_nginx() {
   echo -e "${Red}需要先安装xray，否则可能出现不可意料的错误${EndColor}"
   sleep 5
-  apt-get install nginx -y
+  if [ $isins == 0 ]
+  then
+  	system_check
+  fi
+  nginx_install
+  #apt-get install nginx -y
+  $INS install nginx -y
   echo -e  "${Blue}nginx已安装完成${EndColor}"
   rm -rf /www/xray_web
   if [ ! -d "/www" ]; then
@@ -160,7 +181,11 @@ function xray_link() {
 }
 
 function firewall_install() {
-	apt install firewalld
+	if [ $isins == 0 ] 
+	then
+  	  system_check
+     fi
+	$INS install -y firewalld
 	firewall-cmd --zone=public --add-port=80/tcp --permanent && firewall-cmd --zone=public --add-port=443/tcp --permanent && firewall-cmd --zone=public --add-port=54321/tcp --permanent && firewall-cmd --reload
 	echo -e "${Blue}安装防火墙并开启80、443端口${EndColor}"
 }
@@ -274,10 +299,15 @@ function port_exist_check() {
     print_ok "$1 端口未被占用"
     sleep 1
   else
-    print_error "检测到 $1 端口被占用，以下为 $1 端口占用信息"
+    echo -e  "${Red}检测到 $1 端口被占用，以下为 $1 端口占用信息${EndColor}"
     lsof -i:"$1"
-    print_error "5s 后将尝试自动 kill 占用进程"
+    echo -e  "${Red}5s 后将尝试自动 kill 占用进程${EndColor}"
     sleep 5
+    if [[ $(lsof -i:"$1" | awk '{print $1}' | grep "nginx") ]]; then
+      #echo "nginx"
+      isnginx=1
+    fi
+    #tp=$(lsof -i:80 | awk '{print $1}' | grep "nginx")
     lsof -i:"$1" | awk '{print $2}' | grep -v "PID" | xargs kill -9
     print_ok "kill 完成"
     sleep 1
@@ -285,13 +315,13 @@ function port_exist_check() {
 }
 
 function install_xray() {
-	echo -e  "${Blue}开始安装${EndColor}"	
+	echo -e  "${Blue}开始安装${EndColor}"
+	isins=1	
 	is_root
 	system_check
-	ylk_install
 	port_exist_check 80
 	port_exist_check 443
-	apt-get update -y && apt-get install -y jq openssl cron socat curl unzip vim tar
+	$INS update -y && $INS install -y jq openssl cron socat curl unzip vim tar
 	echo -e  "${Blue}依赖库安装完成${EndColor}"
 	bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
 	echo -e  "${Blue}Xray安装完成${EndColor}"
@@ -319,6 +349,10 @@ function install_xray() {
 	  [ -z "$PWD" ] && PWD="12345678"
 	sed -i 's/"id": ""/"id": "'${UUID}'"/g'  /usr/local/etc/xray/config.json && sed -i 's/"\/path\/to\/fullchain.crt"/"\/usr\/local\/etc\/xray\/'${domain}'.cer"/g'  /usr/local/etc/xray/config.json && sed -i 's/"\/path\/to\/private.key"/"\/usr\/local\/etc\/xray\/'${domain}'.key"/g'  /usr/local/etc/xray/config.json && sed -i 's/"password": ""/"password": "'$PWD'"/g'  /usr/local/etc/xray/config.json
 	systemctl restart xray
+	if [ $isnginx == 1 ]
+	then
+	  systemctl restart nginx
+	fi
 	sleep 5
 	#systemctl status xray
 	xray_link
@@ -345,7 +379,7 @@ function domain_check() {
       sleep 2
       ;;
     *)
-      echo "${Red}安装终止${EndColor}"
+      echo -e "${Red}安装终止${EndColor}"
       exit 2
       ;;
     esac
@@ -365,13 +399,13 @@ function system_check() {
   source '/etc/os-release'
   if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
     echo -e  "当前系统为 Centos ${VERSION_ID} ${VERSION}${EndColor}"
-    INS="yum install -y"
+    INS="yum"
   elif [[ "${ID}" == "ol" ]]; then
     echo -e  "当前系统为 Oracle Linux ${VERSION_ID} ${VERSION}${EndColor}"
-    INS="yum install -y"
+    INS="yum"
   elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 9 ]]; then
     echo -e  "当前系统为 Debian ${VERSION_ID} ${VERSION}${EndColor}"
-    INS="apt install -y"
+    INS="apt"
     # 清除可能的遗留问题
     rm -f /etc/apt/sources.list.d/nginx.list
     $INS lsb-release gnupg2
@@ -382,10 +416,10 @@ function system_check() {
     apt update
   elif [[ "${ID}" == "ubuntu" && $(echo "${VERSION_ID}" | cut -d '.' -f1) -ge 16 ]]; then
     echo -e  "${Blue}当前系统为 Ubuntu ${VERSION_ID} ${UBUNTU_CODENAME}${EndColor}"
-    INS="apt install -y"
+    INS="apt-get"
     # 清除可能的遗留问题
     rm -f /etc/apt/sources.list.d/nginx.list
-    $INS lsb-release gnupg2
+    $INS install -y lsb-release gnupg2
 
     echo "deb http://nginx.org/packages/ubuntu $(lsb_release -cs) nginx" >/etc/apt/sources.list.d/nginx.list
     curl -fsSL https://nginx.org/keys/nginx_signing.key | apt-key add -
@@ -399,7 +433,7 @@ function system_check() {
     cert_group="nogroup"
   fi
 
-  $INS dbus
+  $INS  install -y dbus
 
   # 关闭各类防火墙
   systemctl stop firewalld
