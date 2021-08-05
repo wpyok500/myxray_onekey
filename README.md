@@ -9,3 +9,5 @@ wget -N --no-check-certificate -q "https://raw.githubusercontent.com/wpyok500/my
 ```
 bash myxray.sh
 ```
+本脚本使用官方配置库中的
+https://github.com/XTLS/Xray-examples/tree/main/VLESS-TCP-XTLS-WHATEVER
