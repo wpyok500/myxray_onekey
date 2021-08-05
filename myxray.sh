@@ -137,6 +137,8 @@ function xray_link() {
   echo "vless://$UUID@$DOMAIN:$PORT?security=tls&flow=$FLOW&type=ws&path=$XRAYPATH#VL_WS_TLS-$DOMAIN"
   echo "URL 链接（VLESS + TCP +  XTLS）"
   echo "vless://$UUID@$DOMAIN:$PORT?security=xtls&flow=$FLOW#VL_XTLS-$DOMAIN"
+  echo "URL 链接（VLESS + TCP +  TLS）"
+  echo "vless://$UUID@$DOMAIN:$PORT?security=tls&flow=$FLOW#VL_TLS-$DOMAIN"
   echo "URL 链接（trojan）"
   echo "trojan://$TJPWD@$DOMAIN:$PORT?#TJ-$DOMAIN"
   echo "URL 链接（VMESS + WS）"
