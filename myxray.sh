@@ -84,13 +84,24 @@ function autoGetSSL() {
   DOMAIN=$(cat ${xray_conf_dir}/domain)
   rm -rf $ssl_cert_dir/autogetssl.sh
   echo "#!/bin/bash" > $ssl_cert_dir/autogetssl.sh
+  sed -i '$a\\n' $ssl_cert_dir/autogetssl.sh
+  sed -i '$afunction port_exist_check() {\n  if [[ 0 -eq $(lsof -i:"$1" | grep -i -c "listen") ]]; then\n    echo -e "\\033[34m$1 端口未被占用\\033[0m"\n    sleep 1\n  else\n    echo -e "\\033[31m检测到 $1 端口被占用，以下为 $1 端口占用信息\\033[0m"\n    lsof -i:"$1"\n    echo -e "\\033[31m5s 后将尝试自动 kill 占用进程\\033[0m"\n    sleep 5\n    lsof -i:"$1" | awk '"'{print \$2}'"' | grep -v "PID" | xargs kill -9\n    echo -e "\\033[34mkill 完成\\033[0m"\n    sleep 1\n  fi\n}' $ssl_cert_dir/autogetssl.sh
+  sed -i '$a\\n' $ssl_cert_dir/autogetssl.sh
   sed -i '$aecho -e "\\033[34m续签证书\\033[0m"' $ssl_cert_dir/autogetssl.sh
+  sed -i '$aport_exist_check 80' $ssl_cert_dir/autogetssl.sh
+  sed -i '$aport_exist_check 443' $ssl_cert_dir/autogetssl.sh
   sed -i '$a~/.acme.sh/acme.sh --issue -d '$DOMAIN' --standalone -k ec-256 --force'  $ssl_cert_dir/autogetssl.sh
-  sed -i '$acp -r /root/.acme.sh/'$DOMAIN'_ecc/*.* $ssl_cert_dir' $ssl_cert_dir/autogetssl.sh
+  sed -i '$acp -r /root/.acme.sh/'$DOMAIN'_ecc/*.* '$ssl_cert_dir'' $ssl_cert_dir/autogetssl.sh
   sed -i '$acp -r /root/.acme.sh/'$DOMAIN'_ecc/*.* /usr/local/etc/xray' $ssl_cert_dir/autogetssl.sh
+  sed -i '$afor file in '$xray_conf_dir'/*\ndo\n	if [ -f "$file" ]\n	then\n	  #echo "$file is file"\n		if [[ $file == *".cer"* || $file == *".pem"* || $file == *".crt"* ]]\n		then\n		    #echo "$file包含"\n		    sudo chown nobody.'$cert_group' $file\n		fi\n	fi\ndone' $ssl_cert_dir/autogetssl.sh
   sed -i '$aecho -e "\\033[34m证书续签完成\\033[0m"' $ssl_cert_dir/autogetssl.sh
   sed -i '$aecho -e "\\033[34m重启xray\\033[0m"' $ssl_cert_dir/autogetssl.sh
-  sed -i '$aecho sudo x-ui restart' $ssl_cert_dir/autogetssl.sh
+  sed -i '$asudo systemctl restart xray' $ssl_cert_dir/autogetssl.sh
+  sed -i '$aecho -e "\\033[34m重启nginx\\033[0m"' $ssl_cert_dir/autogetssl.sh
+  sed -i '$asudo systemctl restart nginx' $ssl_cert_dir/autogetssl.sh
+  
+  chmod +x $ssl_cert_dir/autogetssl.sh
+  
   #sed -i '$a0 1 1 * * bash '$ssl_cert_dir'/autogetssl.sh' /var/spool/cron/crontabs/root
   isautogetssl=0
   #export res=$(echo $str1  |  grep $str2)
@@ -186,7 +197,7 @@ function generate_certificate() {
 }
 
 function set_nobody_certificate() {
-	for file in $xray_conf_dir//*
+	for file in $xray_conf_dir/*
 	do
 		if [ -d "$file" ]
 		then 
@@ -258,11 +269,28 @@ function delautogetssl() {
    # done
 }
 
+function port_exist_check() {
+  if [[ 0 -eq $(lsof -i:"$1" | grep -i -c "listen") ]]; then
+    print_ok "$1 端口未被占用"
+    sleep 1
+  else
+    print_error "检测到 $1 端口被占用，以下为 $1 端口占用信息"
+    lsof -i:"$1"
+    print_error "5s 后将尝试自动 kill 占用进程"
+    sleep 5
+    lsof -i:"$1" | awk '{print $2}' | grep -v "PID" | xargs kill -9
+    print_ok "kill 完成"
+    sleep 1
+  fi
+}
+
 function install_xray() {
 	echo -e  "${Blue}开始安装${EndColor}"	
 	is_root
 	system_check
 	ylk_install
+	port_exist_check 80
+	port_exist_check 443
 	apt-get update -y && apt-get install -y jq openssl cron socat curl unzip vim tar
 	echo -e  "${Blue}依赖库安装完成${EndColor}"
 	bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
