@@ -350,10 +350,10 @@ function install_xray() {
 	#$domain
 	#EOF
 	
-	~/.acme.sh/acme.sh --set-default-ca --server zerossl
+	~/.acme.sh/acme.sh --set-default-ca --server zerossl #Letsencrypt.ort BuyPass.com
 	read -rp "请输入你的邮箱信息(eg: mymail@gmail.com):" mymail
 	~/.acme.sh/acme.sh --register-account -m ${mymail}
-	~/.acme.sh/acme.sh --issue -d ${domain} --standalone -k ec-256 --force
+	~/.acme.sh/acme.sh --issue -d ${domain} --standalone -k ec-256 --force #webroot
 	echo -e  "${Blue}SSL证书获取完成${EndColor}"
 	#~/.acme.sh/acme.sh --install-cert -d ${domain} --fullchain-file $ssl_cert_dir/fullchain.cer --key-file $ssl_cert_dir/private.key --ecc
 	cp -r /root/.acme.sh/${domain}_ecc/*.* $ssl_cert_dir
