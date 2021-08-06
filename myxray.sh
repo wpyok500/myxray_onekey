@@ -190,6 +190,22 @@ function firewall_install() {
 	echo -e "${Blue}安装防火墙并开启80、443端口${EndColor}"
 }
 
+function isfirewalld() {
+	if [[ $(dpkg -l | grep -w firewalld) ]];
+	then
+		  echo -e "${Blue}是否重新开启firwalld防火墙 [Y/N]?${EndColor}"
+		  read -r restart_firewalld
+		  #read -rp "是否重新开启firwalld防火墙 [Y/N]：" restart_firewalld
+		  #[ -z "$restart_firewalld" ] && restart_firewalld="N"
+		  case $restart_firewalld in
+		  [yY][eE][sS] | [yY])
+		    systemctl start firewalld
+		    firewall-cmd --state
+		    ;;
+		  *) ;;
+		  esac
+	fi
+}
 
 function manual_certificate() {
 	DOMAIN=$(cat ${xray_conf_dir}/domain)
@@ -263,6 +279,7 @@ function remove_xray() {
     if [[ "${ID}" == "centos" || "${ID}" == "ol" ]]; then
       yum remove nginx -y
     else
+      #apt-get remove nginx nginx-common nginx-full
       apt purge nginx -y
     fi
     ;;
@@ -353,6 +370,7 @@ function install_xray() {
 	then
 	  systemctl restart nginx
 	fi
+	isfirewalld
 	sleep 5
 	#systemctl status xray
 	xray_link
@@ -408,7 +426,7 @@ function system_check() {
     INS="apt"
     # 清除可能的遗留问题
     rm -f /etc/apt/sources.list.d/nginx.list
-    $INS lsb-release gnupg2
+    $INS install -y lsb-release gnupg2
 
     echo "deb http://nginx.org/packages/debian $(lsb_release -cs) nginx" >/etc/apt/sources.list.d/nginx.list
     curl -fsSL https://nginx.org/keys/nginx_signing.key | apt-key add -
@@ -421,6 +439,8 @@ function system_check() {
     rm -f /etc/apt/sources.list.d/nginx.list
     $INS install -y lsb-release gnupg2
 
+    #https://www.nginx.com/resources/wiki/start/topics/tutorials/install/
+    #$(lsb_release -cs)两种编译Codename（bionic xenial）  #  Codename（bionic xenial）请查阅对应nginx编译版本代号：http://nginx.org/en/linux_packages.html#stable
     echo "deb http://nginx.org/packages/ubuntu $(lsb_release -cs) nginx" >/etc/apt/sources.list.d/nginx.list
     curl -fsSL https://nginx.org/keys/nginx_signing.key | apt-key add -
     apt update
