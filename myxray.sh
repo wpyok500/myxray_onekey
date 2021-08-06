@@ -346,6 +346,10 @@ function install_xray() {
 	echo -e  "${Blue}SSL证书生成依赖库安装完成${EndColor}"
 	domain_check
 	echo $domain >$xray_conf_dir/domain #记录域名
+	#cat > $xray_conf_dir/domain <<-EOF
+	#$domain
+	#EOF
+	
 	~/.acme.sh/acme.sh --set-default-ca --server zerossl
 	read -rp "请输入你的邮箱信息(eg: mymail@gmail.com):" mymail
 	~/.acme.sh/acme.sh --register-account -m ${mymail}
