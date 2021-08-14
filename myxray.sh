@@ -62,8 +62,8 @@ function nginx_install() {
 }
 
 function install_nginx() {
-  echo -e "${Red}需要先安装xray，否则可能出现不可意料的错误${EndColor}"
-  sleep 5
+  #echo -e "${Red}需要先安装xray，否则可能出现不可意料的错误${EndColor}"
+  #sleep 5
   if [ $isins == 0 ]
   then
   	system_check
@@ -139,7 +139,7 @@ function autoGetSSL() {
   done </var/spool/cron/crontabs/root
   
   if [[ $isautogetssl == 1 ]]; then
-	    sed -i '$a0 1 1 * * bash '$ssl_cert_dir'/autogetssl.sh' $cronpath/root
+	    sed -i '$a0 1 1 */2 * bash '$ssl_cert_dir'/autogetssl.sh' $cronpath/root
   fi
   echo  -e "${Blue}设定SSL证书自动续期完成${EndColor}"
 }
@@ -363,6 +363,11 @@ function install_xray() {
 	echo -e  "${Blue}SSL 证书配置到 /usr/local/etc/xray${EndColor}"
 	generate_certificate
 	autoGetSSL
+	install_nginx
+}
+
+function vtxwjson_install() {
+	install_xray
 	chmod 777 /usr/local/etc/xray && rm -rf /usr/local/etc/xray/config.json && wget --no-check-certificate -c 	"https://raw.githubusercontent.com/XTLS/Xray-examples/main/VLESS-TCP-XTLS-WHATEVER/config_server.json" -O /usr/local/etc/xray/config.json
 	echo  -e "${Blue}xray配置脚本下载完成${EndColor}"
 	[ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
@@ -379,7 +384,6 @@ function install_xray() {
 	#systemctl status xray
 	xray_link
 }
-
 
 function domain_check() {
   read -rp "请输入你的域名信息(eg: ozx2flay.tk):" domain
@@ -487,7 +491,7 @@ echo -e "${Green}13  更换伪装站点${EndColor}"
 read -rp "请输入数字：" menu_num
   case $menu_num in
   1)
-    install_xray
+    vtxwjson_install
     ;;
   2)
     modify_uuid
