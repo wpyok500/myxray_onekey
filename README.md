@@ -12,7 +12,7 @@ bash myxray.sh
 本脚本使用官方配置库中的
 https://github.com/XTLS/Xray-examples/tree/main/VLESS-TCP-XTLS-WHATEVER
 
-#x-ui 一键辅助安装脚本（nginx openssl acme 伪装站点 自动续签证书）
+# x-ui 一键辅助安装脚本（nginx openssl acme 伪装站点 自动续签证书）
 安装脚本
 ```
 wget -N --no-check-certificate -q "https://raw.githubusercontent.com/wpyok500/myxray_onekey/main/myxxui.sh" && chmod +x myxui.sh && bash myxui.sh
