@@ -321,15 +321,25 @@ function firewall_GL1() {
 }
 
 function firewall_install() {
-	if [ $isins == 0 ] 
-	then
-  	  system_check
-     fi
-	$INS install -y firewalld
-	firewall-cmd --zone=public --add-port=80/tcp --permanent && firewall-cmd --zone=public --add-port=443/tcp --permanent && firewall-cmd --zone=public --add-port=54321/tcp --permanent && firewall-cmd --reload
-	systemctl restart firewalld.service #systemctl start firewalld.service
-	firewall-cmd --list-all
-	echo -e "${Blue}安装防火墙并开启80、443、54321端口${EndColor}"
+	echo -e "${Blue}是否安装firwalld防火墙 [Y/N]?${EndColor}"
+		  read -r restart_firewalld
+		  #read -rp "是否重新开启firwalld防火墙 [Y/N]：" restart_firewalld
+		  #[ -z "$restart_firewalld" ] && restart_firewalld="N"
+		  case $restart_firewalld in
+		  [yY][eE][sS] | [yY])
+		    if [ $isins == 0 ] 
+			then
+		  	  system_check
+		     fi
+			$INS install -y firewalld
+			firewall-cmd --zone=public --add-port=80/tcp --permanent && firewall-cmd --zone=public --add-port=443/tcp --permanent && firewall-cmd --zone=public --add-port=54321/tcp --permanent && firewall-cmd --reload
+			systemctl restart firewalld.service #systemctl start firewalld.service
+			firewall-cmd --list-all
+			echo -e "${Blue}安装防火墙并开启80、443、54321端口${EndColor}"
+		    ;;
+		  *) ;;
+		  esac
+	
 	#卸载防火墙 apt purge firewalld
 }
 
@@ -468,7 +478,7 @@ function install_myxui() {
 	#cat > $ssl_cert_dir/domain <<-EOF
 	#$domain
 	#EOF
-	firewall_install
+	#firewall_install
 	echo -e  "${Blue}安装x-ui${EndColor}"
 	bash <(curl -Ls https://raw.githubusercontent.com/vaxilu/x-ui/master/install.sh)
 	echo -e  "${Blue}x-ui安装完成${EndColor}"
