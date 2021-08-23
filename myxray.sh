@@ -331,6 +331,35 @@ function port_exist_check() {
   fi
 }
 
+function setLinuxDateZone(){
+    tempCurrentDateZone=$(date +'%z')
+    echo
+    if [[ ${tempCurrentDateZone} == "+0800" ]]; then
+        yellow "当前时区已经为北京时间  $tempCurrentDateZone | $(date -R) "
+    else 
+        green " =================================================="
+        yellow " 当前时区为: $tempCurrentDateZone | $(date -R) "
+        yellow " 是否设置时区为北京时间 +0800区, 以便cron定时重启脚本按照北京时间运行."
+        green " =================================================="
+        # read 默认值 https://stackoverflow.com/questions/2642585/read-a-variable-in-bash-with-a-default-value
+        read -p "是否设置为北京时间 +0800 时区? 请输入[Y/n]:" osTimezoneInput
+        osTimezoneInput=${osTimezoneInput:-Y}
+
+        if [[ $osTimezoneInput == [Yy] ]]; then
+            if [[ -f /etc/localtime ]] && [[ -f /usr/share/zoneinfo/Asia/Shanghai ]];  then
+                mv /etc/localtime /etc/localtime.bak
+                #cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+                #rm /etc/localtime && ln -s /usr/share/zoneinfo/Universal /etc/localtime && timedatectl # UTC
+			 rm /etc/localtime && ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && timedatectl	
+                yellow "设置成功! 当前时区已设置为 $(date -R)"
+                green " =================================================="
+            fi
+        fi
+
+    fi
+    echo
+}
+
 function install_xray() {
 	echo -e  "${Blue}开始安装${EndColor}"
 	isins=1	
@@ -368,6 +397,9 @@ function install_xray() {
 
 function vtxwjson_install() {
 	install_xray
+	#mv /etc/localtime /etc/localtime.bak
+	#rm /etc/localtime
+	#ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && timedatectl # 设置时区并同步时间 
 	chmod 777 /usr/local/etc/xray && rm -rf /usr/local/etc/xray/config.json && wget --no-check-certificate -c 	"https://raw.githubusercontent.com/XTLS/Xray-examples/main/VLESS-TCP-XTLS-WHATEVER/config_server.json" -O /usr/local/etc/xray/config.json
 	echo  -e "${Blue}xray配置脚本下载完成${EndColor}"
 	[ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
