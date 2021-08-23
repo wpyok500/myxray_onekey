@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-
+shell_version="1.0.0"
 
 function print_ok() {
   echo -e "${Blue}$1${EndColor}"
@@ -361,6 +361,26 @@ function isfirewalld() {
 	fi
 }
 
+function update_sh() {
+  ol_version=$(curl -L -s https://raw.githubusercontent.com/wpyok500/myxray_onekey/main/myxui.sh | grep "shell_version=" | head -1 | awk -F '=|"' '{print $3}')
+  if [[ "$shell_version" != "$(echo -e "$shell_version\n$ol_version" | sort -rV | head -1)" ]]; then
+    print_ok "存在新版本，是否更新 [Y/N]?"
+    read -r update_confirm
+    case $update_confirm in
+    [yY][eE][sS] | [yY])
+      wget -N --no-check-certificate -q "https://raw.githubusercontent.com/wpyok500/myxray_onekey/main/myxui.sh" && chmod +x myxui.sh
+      echo -e "${Blue}更新完成${EndColor}"
+      echo -e "您可以通过 bash $0 执行本程序"
+      exit 0
+      ;;
+    *) ;;
+    esac
+  else
+    echo -e "${Blue}当前版本为最新版本${EndColor}"
+    echo -e "您可以通过 bash $0 执行本程序"
+  fi
+}
+
 function manual_certificate() {
 	DOMAIN=$(cat ${ssl_cert_dir}/domain)
 	~/.acme.sh/acme.sh --issue -d ${DOMAIN} --standalone -k ec-256 --force
@@ -600,6 +620,7 @@ echo -e "${Green}6   更换伪装站点${EndColor}"
 echo -e "${Green}7   nginx配置xui相关设置${EndColor}"
 echo -e "${Green}8   卸载x-ui${EndColor}"
 echo -e "${Green}9   查看证书路径${EndColor}"
+echo -e "${Green}0   更新脚本${EndColor}"
 read -rp "请输入数字：" menu_num
   case $menu_num in
   1)
@@ -632,7 +653,10 @@ read -rp "请输入数字：" menu_num
     DOMAIN=$(cat ${ssl_cert_dir}/domain)
     echo -e "${Purple}公钥文件路径： $ssl_cert_dir/fullchain.cer ${EndColor}"
     echo -e "${Purple}密钥文件路径： $ssl_cert_dir/$DOMAIN.key ${EndColor}"
-    ;;    
+    ;;
+  0)
+    update_sh
+    ;;   
   *)
     echo -e "${Red}请输入正确的数字${EndColor}"
     ;;
