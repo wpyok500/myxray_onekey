@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.0.0"
+shell_version="1.0.1"
 
 function print_ok() {
   echo -e "${Blue}$1${EndColor}"
@@ -214,16 +214,41 @@ function autoGetSSL() {
   
   cat > $ssl_cert_dir/autogetssl.sh <<-EOF
 #!/bin/bash
+cert_group="nogroup"
+ssl_cert_dir="/etc/ssl/private"
+function set_nobody_certificate() {
+	for file in \$1/*
+	do
+		if [ -d "\$file" ]
+		then 
+		  #echo "$file is directory"
+		  echo ""
+		elif [ -f "\$file" ]
+		then
+		  #echo "$file is file"
+			if [[ \$file == *".cer"* || \$file == *".pem"* || \$file == *".crt"*  || \$file == *".key"* ]]
+			then
+			    #echo "$file包含"
+			    chown nobody.$cert_group \$file
+			fi
+		fi
+	done
+}
+
 function port_exist_check() {
-  if [[ 0 -eq $(lsof -i:"$1" | grep -i -c "listen") ]]; then
+  if [[ 0 -eq \$(lsof -i:"\$1" | grep -i -c "listen") ]]; then
     echo -e "\033[34m$1 端口未被占用\033[0m"
     sleep 1
   else
-    echo -e "\033[31m检测到 $1 端口被占用，以下为 $1 端口占用信息\033[0m"
-    lsof -i:"$1"
-    echo -e "\033[31m5s 后将尝试自动 kill 占用进程\033[0m"
+    echo -e  "${Red}检测到 \$1 端口被占用，以下为 \$1 端口占用信息${EndColor}"
+    lsof -i:"\$1"
+    echo -e  "${Red}5s 后将尝试自动 kill 占用进程${EndColor}"
     sleep 5
-    lsof -i:"$1" | awk '{print $2}' | grep -v "PID" | xargs kill -9
+    if [[ \$(lsof -i:"\$1" | awk '{print \$1}' | grep "nginx") ]]; then
+      #echo "nginx"
+      isnginx=1
+    fi
+    lsof -i:"\$1" | awk '{print \$2}' | grep -v "PID" | xargs kill -9
     echo -e "\033[34mkill 完成\033[0m"
     sleep 1
   fi
@@ -232,20 +257,11 @@ function port_exist_check() {
 echo -e "\033[34m续签证书\033[0m"
 port_exist_check 80
 port_exist_check 443
+sleep 3
 ~/.acme.sh/acme.sh --issue -d $DOMAIN --standalone -k ec-256 --force
-cp -r /root/.acme.sh/$DOMAIN_ecc/*.* /etc/ssl/private
-for file in /etc/ssl/privatey/*
-do
-	if [ -f "$file" ]
-	then
-	  #echo "$file is file"
-		if [[ $file == *".cer"* || $file == *".pem"* || $file == *".crt"* ]]
-		then
-		    #echo "$file包含"
-		    sudo chown nobody.nogroup $file
-		fi
-	fi
-done
+sleep 1
+cp -r /root/.acme.sh/${DOMAIN}_ecc/*.* /etc/ssl/private
+set_nobody_certificate \$ssl_cert_dir
 echo -e "\033[34m证书续签完成\033[0m"
 echo -e "\033[34m重启x-ui\033[0m"
 x-ui restart
@@ -383,6 +399,7 @@ function update_sh() {
 
 function manual_certificate() {
 	DOMAIN=$(cat ${ssl_cert_dir}/domain)
+	port_exist_check 80
 	~/.acme.sh/acme.sh --issue -d ${DOMAIN} --standalone -k ec-256 --force
 	echo -e  "${Blue}SSL证书获取完成${EndColor}"
 	#~/.acme.sh/acme.sh --install-cert -d ${domain} --fullchain-file $ssl_cert_dir/fullchain.cer --key-file $ssl_cert_dir/private.key --ecc
@@ -632,6 +649,7 @@ read -rp "请输入数字：" menu_num
   3)
     #domain_check
     #generate_certificate
+    #autoGetSSL
     manual_certificate
     ;; 
   4)
