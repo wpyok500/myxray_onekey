@@ -21,3 +21,9 @@ wget -N --no-check-certificate -q "https://raw.githubusercontent.com/wpyok500/my
 ```
 bash myxui.sh
 ```
+
+
+开启ivp6:
+sed -i '$anet.ipv6.conf.all.disable_ipv6=1' /etc/sysctl.conf && sed -i '$anet.ipv6.conf.default.disable_ipv6=1' /etc/sysctl.conf && sed -i '$anet.ipv6.conf.lo.disable_ipv6=1' /etc/sysctl.conf && sysctl -p && ip a
+关闭ivp6:
+sed -i '/net.ipv6.conf.all.disable_ipv6=1/d' /etc/sysctl.conf && sed -i '/net.ipv6.conf.default.disable_ipv6=1/d' /etc/sysctl.conf && sed -i '/net.ipv6.conf.lo.disable_ipv6=1/d' /etc/sysctl.conf && sysctl -p && ip a
