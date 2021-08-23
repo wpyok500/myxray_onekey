@@ -10,6 +10,7 @@ cert_group="nogroup"
 Green="\033[32m"
 Red="\033[31m"
 Blue="\033[34m"
+Purple="\033[35m"
 EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
@@ -383,7 +384,7 @@ function set_nobody_certificate() {
 		elif [ -f "$file" ]
 		then
 		  #echo "$file is file"
-			if [[ $file == *".cer"* || $file == *".pem"* || $file == *".crt"* ]]
+			if [[ $file == *".cer"* || $file == *".pem"* || $file == *".crt"*  || $file == *".key"* ]]
 			then
 			    #echo "$file包含"
 			    chown nobody.$cert_group $file
@@ -494,9 +495,9 @@ function install_myxui() {
 	autoGetSSL
 	install_nginx
 	crrateconf
-	echo -e  "${Blue}请自行记录证书路径，后续x-ui面板可能需要设置${EndColor}"
-	echo -e  "${Blue}"$ssl_cert_dir"/fullchain.cer${EndColor}"
-	echo -e  "${Blue}"$ssl_cert_dir"/$domain.cer${EndColor}"
+	echo -e  "${Purple}请自行记录证书路径，后续x-ui面板可能需要设置${EndColor}"
+	echo -e "${Purple}公钥文件路径： $ssl_cert_dir/fullchain.cer ${EndColor}"
+     echo -e "${Purple}密钥文件路径： $ssl_cert_dir/$domain.key ${EndColor}"
 	echo "如果是全新安装x-ui，请使用http://${local_ip}:54321访问并进行xui面板设置，用户名和密码默认都是 admin"
 	echo "请自行确保此端口没有被其他程序占用，并且确保 54321 端口已放行"
 }
@@ -598,6 +599,7 @@ echo -e "${Green}5   firwall防火墙端口管理${EndColor}"
 echo -e "${Green}6   更换伪装站点${EndColor}"
 echo -e "${Green}7   nginx配置xui相关设置${EndColor}"
 echo -e "${Green}8   卸载x-ui${EndColor}"
+echo -e "${Green}9   查看证书路径${EndColor}"
 read -rp "请输入数字：" menu_num
   case $menu_num in
   1)
@@ -625,6 +627,11 @@ read -rp "请输入数字：" menu_num
     ;;
   8)
     remove_xui
+    ;;
+  9)
+    DOMAIN=$(cat ${ssl_cert_dir}/domain)
+    echo -e "${Purple}公钥文件路径： $ssl_cert_dir/fullchain.cer ${EndColor}"
+    echo -e "${Purple}密钥文件路径： $ssl_cert_dir/$DOMAIN.key ${EndColor}"
     ;;    
   *)
     echo -e "${Red}请输入正确的数字${EndColor}"
