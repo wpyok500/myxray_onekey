@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.0.2"
+shell_version="1.0.3"
 
 function print_ok() {
   echo -e "${Blue}$1${EndColor}"
@@ -246,8 +246,8 @@ function vlessconf() {
   #sleep 3
   read -rp "请输入反代路径(默认：datevl)：" vlpath
   [ -z "$vlpath" ] && vlpath="datevl"
-  read -rp "请输入面板端口号(默认：54992)：" vlPORT
-      [ -z "$vlPORT" ] && vlPORT="54992"
+  read -rp "请输入面板端口号(默认：54991)：" vlPORT
+      [ -z "$vlPORT" ] && vlPORT="54991"
       if [[ $vlPORT -le 0 ]] || [[ $vlPORT -gt 65535 ]]; then
         echo "请输入 0-65535 之间的值"
         exit 1
@@ -276,18 +276,40 @@ menu_nginx() {
 echo -e "\t x-ui nginx配置 ${Red}[by 福建-兮]${Font}"
 echo -e "${Green}1.  反代配置"
 echo -e "${Green}2.  回落fallback配置"
+echo -e "${Green}3.  退出"
 read -rp "请输入数字：" menu_nginx_conf
 [ -z "$menu_nginx_conf" ] && menu_nginx_conf="54992"
   case $menu_nginx_conf in
   1)
+    x-ui stop
+    sleep 2
+    rm -rf /usr/local/x-ui/bin/config.json
+    port_exist_check 80
+    port_exist_check 443
     createconf
+    x-ui restart
     ;;
   2)
+    x-ui stop
+    sleep 2
+    rm -rf /usr/local/x-ui/bin/config.json
+    port_exist_check 80
+    port_exist_check 443
     createfallbackconf
+    x-ui restart
     ;;
+  2)
+    exit 1
+    ;;  
   *)
     echo -e "${Red}输入错误，使用反代配置${EndColor}"
+    x-ui stop
+    sleep 2
+    rm -rf /usr/local/x-ui/bin/config.json
+    port_exist_check 80
+    port_exist_check 443
     createconf
+    x-ui restart
     ;;
   esac
 }
@@ -583,7 +605,11 @@ function port_exist_check() {
   fi
 }
 
-
+function update_geoip() {
+   wget -N --no-check-certificate -q -O /usr/local/x-ui/bin/geoip.dat "https://github.com/v2fly/geoip/releases/latest/download/geoip.dat"
+   wget -N --no-check-certificate -q -O /usr/local/x-ui/bin/geosite.dat "https://github.com/v2fly/domain-list-community/releases/latest/download/dlc.dat"
+   echo -e  "${Blue}geodata更新完成${EndColor}"
+}
 
 function install_myxui() {
 	echo -e  "${Blue}开始安装${EndColor}"
@@ -606,6 +632,7 @@ function install_myxui() {
 	echo -e  "${Blue}安装x-ui${EndColor}"
 	bash <(curl -Ls https://raw.githubusercontent.com/vaxilu/x-ui/master/install.sh)
 	echo -e  "${Blue}x-ui安装完成${EndColor}"
+	update_geoip
 	~/.acme.sh/acme.sh --set-default-ca --server zerossl #Letsencrypt.ort BuyPass.com
 	read -rp "请输入你的邮箱信息(eg: mymail@gmail.com):" mymail
 	~/.acme.sh/acme.sh --register-account -m ${mymail}
