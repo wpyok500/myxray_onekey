@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.0.1"
+shell_version="1.0.2"
 
 function print_ok() {
   echo -e "${Blue}$1${EndColor}"
@@ -174,6 +174,60 @@ server
 EOF
 }
 
+function fallbackconf() 
+{
+	read -rp "请输入回落fallback端口号(默认：54991)：" fallbackPORT
+      [ -z "$fallbackPORT" ] && fallbackPORT="54991"
+      if [[ $fallbackPORT -le 0 ]] || [[ $fallbackPORT -gt 65535 ]]; then
+        echo "请输入 0-65535 之间的值"
+        exit 1
+      fi
+	rm -rf /etc/nginx/conf.d/default.conf
+	cat > /etc/nginx/conf.d/default.conf <<-EOF
+server
+{
+    ##需要更改的地方：x-ui面板设定(35、36行)
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    listen $fallbackPORT http2 proxy_protocol;
+    
+    #配置站点域名，多个以空格分开
+    server_name _;
+    index index.php index.html index.htm default.php default.htm default.html;
+    root /www/xray_web;
+
+    add_header Strict-Transport-Security "max-age=63072000" always;
+ 
+    #禁止访问的文件或目录
+    location ~ ^/(\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)
+    {
+        return 404;
+    }
+    
+    location ~ .*\.(gif|jpg|jpeg|png|bmp|swf)$
+    {
+        expires      30d;
+        error_log /dev/null;
+        access_log /dev/null;
+    }
+    
+    location ~ .*\.(js|css)?$
+    {
+        expires      12h;
+        error_log /dev/null;
+        access_log /dev/null; 
+    }
+    location ^~ /$rootpath {
+	    proxy_pass http://127.0.0.1:$xuiPORT/$rootpath;
+	    proxy_set_header Host \$host;
+	    proxy_set_header X-Real-IP \$remote_addr;
+	    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    }
+}	
+EOF
+}
+
 function xuiconf() {
   echo -e "${Blue}nginx相关x-ui设置，请注意确保与x-ui的面板设置保持一致${EndColor}"
   #sleep 3
@@ -200,12 +254,42 @@ function vlessconf() {
       fi
 }
 
-function crrateconf() {
+function createconf() {
 	xuiconf
 	vlessconf
 	createnginxconf
 	systemctl restart nginx
 	echo -e "${Blue}nginx 配置完成${EndColor}"
+}
+
+function createfallbackconf() {
+	xuiconf
+	fallbackconf
+	systemctl restart nginx
+	echo -e "${Red}使用回落配置，请到x-ui面板配置fallback相关设置，否则伪装站点无法正常使用https访问${EndColor}"
+	echo -e "fallback配置{"alpn": "h2","dest": $fallbackPORT,"xver": 1}"
+	echo -e "${Blue}nginx 配置完成${EndColor}"
+	#sleep 2
+}
+
+menu_nginx() {
+echo -e "\t x-ui nginx配置 ${Red}[by 福建-兮]${Font}"
+echo -e "${Green}1.  反代配置"
+echo -e "${Green}2.  回落fallback配置"
+read -rp "请输入数字：" menu_nginx_conf
+[ -z "$menu_nginx_conf" ] && menu_nginx_conf="54992"
+  case $menu_nginx_conf in
+  1)
+    createconf
+    ;;
+  2)
+    createfallbackconf
+    ;;
+  *)
+    echo -e "${Red}输入错误，使用反代配置${EndColor}"
+    createconf
+    ;;
+  esac
 }
 
 function autoGetSSL() {
@@ -499,6 +583,8 @@ function port_exist_check() {
   fi
 }
 
+
+
 function install_myxui() {
 	echo -e  "${Blue}开始安装${EndColor}"
 	isins=1	
@@ -531,7 +617,8 @@ function install_myxui() {
 	set_nobody_certificate $ssl_cert_dir
 	autoGetSSL
 	install_nginx
-	crrateconf
+	#createconf
+	menu_nginx
 	echo -e  "${Purple}请自行记录证书路径，后续x-ui面板可能需要设置${EndColor}"
 	echo -e "${Purple}公钥文件路径： $ssl_cert_dir/fullchain.cer ${EndColor}"
      echo -e "${Purple}密钥文件路径： $ssl_cert_dir/$domain.key ${EndColor}"
@@ -662,7 +749,8 @@ read -rp "请输入数字：" menu_num
     change_web
     ;;
   7)
-    crrateconf
+    #createconf
+    menu_nginx
     ;;
   8)
     remove_xui
