@@ -23,6 +23,7 @@ bash myxui.sh
 ```
 
 > [# myxui] (https://github.com/wpyok500/myxray_onekey/blob/main/myxui.md)
+> [感谢 JetBrains 提供的非商业开源软件开发授权](https://www.jetbrains.com/?from=v2ray-agent)
 
 
 脚本主要参考自https://github.com/wulabing/Xray_onekey，特此感谢大佬。
