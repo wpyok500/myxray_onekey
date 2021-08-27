@@ -176,8 +176,8 @@ EOF
 
 function fallbackconf() 
 {
-	read -rp "请输入回落fallback端口号(默认：54991)：" fallbackPORT
-      [ -z "$fallbackPORT" ] && fallbackPORT="54991"
+	read -rp "请输入回落fallback端口号(默认：8080)：" fallbackPORT
+      [ -z "$fallbackPORT" ] && fallbackPORT="8080"
       if [[ $fallbackPORT -le 0 ]] || [[ $fallbackPORT -gt 65535 ]]; then
         echo "请输入 0-65535 之间的值"
         exit 1
@@ -186,9 +186,17 @@ function fallbackconf()
 	cat > /etc/nginx/conf.d/default.conf <<-EOF
 server
 {
-    ##需要更改的地方：x-ui面板设定(35、36行)
-    listen 80 default_server;
-    listen [::]:80 default_server;
+        listen 80 default_server;
+        listen [::]:80 default_server;
+        server_name xxx;
+        return 301 https://\$http_host\$request_uri;
+
+        access_log  /dev/null;
+        error_log  /dev/null;
+}
+server
+{
+    ##需要更改的地方：x-ui面板设定(43、44行)
 
     listen $fallbackPORT http2 proxy_protocol;
     
@@ -198,7 +206,7 @@ server
     root /www/xray_web;
 
     add_header Strict-Transport-Security "max-age=63072000" always;
- 
+    
     #禁止访问的文件或目录
     location ~ ^/(\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)
     {
