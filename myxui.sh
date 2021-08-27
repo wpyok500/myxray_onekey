@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.0.3"
+shell_version="1.0.4"
 
 function print_ok() {
   echo -e "${Blue}$1${EndColor}"
@@ -188,7 +188,7 @@ server
 {
         listen 80 default_server;
         listen [::]:80 default_server;
-        server_name xxx;
+        server_name _;
         return 301 https://\$http_host\$request_uri;
 
         access_log  /dev/null;
@@ -233,6 +233,51 @@ server
 	    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
     }
 }	
+EOF
+}
+
+function nginxdefultconf() {
+xuiconf
+rm -rf /etc/nginx/conf.d/default.conf
+	cat > /etc/nginx/conf.d/default.conf <<-EOF
+server
+{
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
+    #配置站点域名，多个以空格分开
+    server_name _;
+    index index.php index.html index.htm default.php default.htm default.html;
+    root /www/xray_web;
+
+    add_header Strict-Transport-Security "max-age=63072000" always;
+    
+    #禁止访问的文件或目录
+    location ~ ^/(\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)
+    {
+        return 404;
+    }
+    
+    location ~ .*\.(gif|jpg|jpeg|png|bmp|swf)$
+    {
+        expires      30d;
+        error_log /dev/null;
+        access_log /dev/null;
+    }
+    
+    location ~ .*\.(js|css)?$
+    {
+        expires      12h;
+        error_log /dev/null;
+        access_log /dev/null; 
+    }
+    location ^~ /$rootpath {
+	    proxy_pass http://127.0.0.1:$xuiPORT/$rootpath;
+	    proxy_set_header Host \$host;
+	    proxy_set_header X-Real-IP \$remote_addr;
+	    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    }
+}
 EOF
 }
 
@@ -284,29 +329,36 @@ menu_nginx() {
 echo -e "\t x-ui nginx配置 ${Red}[by 福建-兮]${Font}"
 echo -e "${Green}1.  反代配置"
 echo -e "${Green}2.  回落fallback配置"
-echo -e "${Green}3.  退出"
+echo -e "${Green}3.  仅x-ui面板配置"
+echo -e "${Green}4.  退出"
 read -rp "请输入数字：" menu_nginx_conf
 [ -z "$menu_nginx_conf" ] && menu_nginx_conf="54992"
   case $menu_nginx_conf in
   1)
-    x-ui stop
-    sleep 2
     rm -rf /usr/local/x-ui/bin/config.json
     port_exist_check 80
     port_exist_check 443
     createconf
+    systemctl restart nginx
     x-ui restart
     ;;
   2)
-    x-ui stop
-    sleep 2
     rm -rf /usr/local/x-ui/bin/config.json
     port_exist_check 80
     port_exist_check 443
     createfallbackconf
+    systemctl restart nginx
     x-ui restart
     ;;
-  2)
+  3)
+    rm -rf /usr/local/x-ui/bin/config.json
+    port_exist_check 80
+    port_exist_check 443
+    nginxdefultconf
+    systemctl restart nginx
+    x-ui restart
+    ;;  
+  4)
     exit 1
     ;;  
   *)
