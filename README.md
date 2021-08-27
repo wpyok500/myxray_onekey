@@ -22,6 +22,6 @@ wget -N --no-check-certificate -q "https://raw.githubusercontent.com/wpyok500/my
 bash myxui.sh
 ```
 
-# myxui (https://github.com/wpyok500/myxray_onekey/blob/main/myxui.md)
+# > [myxui] (https://github.com/wpyok500/myxray_onekey/blob/main/myxui.md)
 
 脚本主要参考自https://github.com/wulabing/Xray_onekey，特此感谢大佬。
