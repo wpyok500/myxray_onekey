@@ -7,7 +7,7 @@
 2、客户端
 ![image](https://user-images.githubusercontent.com/14154547/131056622-1263549f-be46-4d5c-887e-f1135f391fb0.png)
 # 回落fallback配置，xray配置如下，同样根据安装脚本时你设定的相关信息进行设定
-# 因X-UI目前并未完整支持fallback故无法套用CDN，即使完全支持，xray目前也仅vmless+ws配置支持套用CDN
+# 因X-UI目前并未完整支持fallback故无法套用CDN代理，即使完全支持，xray目前也仅vmless+ws配置支持套用CDN代理
 1、服务端,这样配置后即可使用https进行访问了
 回落fallback配置{"alpn":"h2","dest":"8080","xver":1}
 ![image](https://user-images.githubusercontent.com/14154547/131057453-a6d5df5e-dd71-41d5-8888-9e26871c618e.png)
