@@ -34,6 +34,7 @@ bash myxui.sh
 1、服务端,这样配置后即可使用https进行访问了
 回落fallback配置{"alpn":"h2","dest":"8080","xver":1}
 ![image](https://user-images.githubusercontent.com/14154547/131057453-a6d5df5e-dd71-41d5-8888-9e26871c618e.png)
+
 2、客户端
 使用https://你的域名/myxui/xui/inbounds访问，扫描二维码或复制连接到客户端即可
 
