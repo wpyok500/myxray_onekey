@@ -569,11 +569,12 @@ function manual_certificate() {
 	~/.acme.sh/acme.sh --issue -d ${DOMAIN} --standalone -k ec-256 --force
 	echo -e  "${Blue}SSL证书获取完成${EndColor}"
 	#~/.acme.sh/acme.sh --install-cert -d ${domain} --fullchain-file $ssl_cert_dir/fullchain.cer --key-file $ssl_cert_dir/private.key --ecc
-	cp -r /root/.acme.sh/${domain}_ecc/*.* $ssl_cert_dir
+	cp -r /root/.acme.sh/${DOMAIN}_ecc/*.* $ssl_cert_dir
+	set_nobody_certificate $ssl_cert_dir
 	echo -e  "${Blue}SSL 证书配置到 $ssl_cert_dir${EndColor}"
 	x-ui restart
-	sleep 3
-	x-ui status
+	#sleep 3
+	#x-ui status
 }
 
 
@@ -825,6 +826,7 @@ read -rp "请输入数字：" menu_num
     #generate_certificate
     #autoGetSSL
     manual_certificate
+    systemctl restart nginx
     ;; 
   4)
     firewall_install
