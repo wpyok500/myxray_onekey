@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.0.4"
+shell_version="1.0.5"
 
 function print_ok() {
   echo -e "${Blue}$1${EndColor}"
@@ -669,7 +669,7 @@ function port_exist_check() {
 function update_geoip() {
    wget -N --no-check-certificate -q -O /usr/local/x-ui/bin/geoip.dat "https://github.com/v2fly/geoip/releases/latest/download/geoip.dat"
    wget -N --no-check-certificate -q -O /usr/local/x-ui/bin/geosite.dat "https://github.com/v2fly/domain-list-community/releases/latest/download/dlc.dat"
-   echo -e  "${Blue}geodata更新完成${EndColor}"
+   echo -e  "${Blue}geoip、geosite数据更新完成${EndColor}"
 }
 
 function install_myxui() {
@@ -812,6 +812,7 @@ echo -e "${Green}6   更换伪装站点${EndColor}"
 echo -e "${Green}7   nginx配置xui相关设置${EndColor}"
 echo -e "${Green}8   卸载x-ui${EndColor}"
 echo -e "${Green}9   查看证书路径${EndColor}"
+echo -e "${Green}10  更新geoip、geosite${EndColor}"
 echo -e "${Green}0   更新脚本${EndColor}"
 read -rp "请输入数字：" menu_num
   case $menu_num in
@@ -848,6 +849,9 @@ read -rp "请输入数字：" menu_num
     DOMAIN=$(cat ${ssl_cert_dir}/domain)
     echo -e "${Purple}公钥文件路径： $ssl_cert_dir/fullchain.cer ${EndColor}"
     echo -e "${Purple}密钥文件路径： $ssl_cert_dir/$DOMAIN.key ${EndColor}"
+    ;;
+  10)
+    update_geoip
     ;;
   0)
     update_sh
