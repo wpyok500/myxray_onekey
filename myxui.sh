@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.0.5"
+shell_version="1.0.6"
 
 function print_ok() {
   echo -e "${Blue}$1${EndColor}"
@@ -376,9 +376,9 @@ read -rp "请输入数字：" menu_nginx_conf
 
 function autoGetSSL() {
   DOMAIN=$(cat ${ssl_cert_dir}/domain)
-  rm -rf $ssl_cert_dir/autogetssl.sh
+  rm -rf $ssl_cert_dir/auto_ssl.sh
   
-  cat > $ssl_cert_dir/autogetssl.sh <<-EOF
+  cat > $ssl_cert_dir/auto_ssl.sh <<-EOF
 #!/bin/bash
 cert_group="nogroup"
 ssl_cert_dir="/etc/ssl/private"
@@ -435,14 +435,14 @@ echo -e "\033[34m重启nginx\033[0m"
 sudo systemctl restart nginx
 EOF
   
-  chmod +x $ssl_cert_dir/autogetssl.sh
-  echo  -e "${Blue}autogetssl.sh运行权限完成${EndColor}"
-  #sed -i '$a0 1 1 * * bash '$ssl_cert_dir'/autogetssl.sh' /var/spool/cron/crontabs/root
-  isautogetssl=0
+  chmod +x $ssl_cert_dir/auto_ssl.sh
+  echo  -e "${Blue}auto_ssl.sh运行权限完成${EndColor}"
+  #sed -i '$a0 1 1 * * bash '$ssl_cert_dir'/auto_ssl.sh' /var/spool/cron/crontabs/root
+    isautogetssl=0
   #export res=$(echo $str1  |  grep $str2)
-  while read line
+  while read -r line
   do
-     res=$(echo $line  |  grep "autogetssl")
+     res=$(echo $line  |  grep "auto_ssl.sh")
      #echo $res
 	if [[ $res == "" ]]; then
 	    isautogetssl=1
@@ -451,9 +451,8 @@ EOF
 	    break
 	fi
   done </var/spool/cron/crontabs/root
-  
   if [[ $isautogetssl == 1 ]]; then
-	    sed -i '$a0 1 1 */2 * bash '$ssl_cert_dir'/autogetssl.sh' $cronpath/root
+	sed -i '$a0 1 1 */2 * bash '$ssl_cert_dir'/auto_ssl.sh' $cronpath/root
   fi
   echo  -e "${Blue}设定SSL证书自动续期完成${EndColor}"
 }
@@ -635,9 +634,11 @@ function remove_n_a() {
 }
 
 function delautogetssl() {
-    #sed -i '/autogetssl/d' /var/spool/cron/crontabs/root
-    rm -rf $ssl_cert_dir/autogetssl.sh
-    sed -i '/autogetssl/d' $cronpath/root
+    #sed -i '/auto_ssl/d' /var/spool/cron/crontabs/root
+    rm -rf $ssl_cert_dir/auto_ssl.sh
+    sed -i '/auto_ssl/d' $cronpath/root
+    sed -i '/geoip.dat/d' $cronpath/root
+    sed -i '/geosite.dat/d' $cronpath/root
     #cat $cronpath/root | while read line
     #do
     #	 if [[ $line == *"autogetssl"* ]]; then
@@ -667,9 +668,32 @@ function port_exist_check() {
 }
 
 function update_geoip() {
-   wget -N --no-check-certificate -q -O /usr/local/x-ui/bin/geoip.dat "https://github.com/v2fly/geoip/releases/latest/download/geoip.dat"
-   wget -N --no-check-certificate -q -O /usr/local/x-ui/bin/geosite.dat "https://github.com/v2fly/domain-list-community/releases/latest/download/dlc.dat"
+   #wget -N --no-check-certificate -q -O /usr/local/x-ui/bin/geoip.dat "https://github.com/v2fly/geoip/releases/latest/download/geoip.dat"
+   #wget -N --no-check-certificate -q -O /usr/local/x-ui/bin/geosite.dat "https://github.com/v2fly/domain-list-community/releases/latest/download/dlc.dat"
+   wget -N --no-check-certificate -q -O /usr/local/x-ui/bin/geoip.dat "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat"
+   wget -N --no-check-certificate -q -O /usr/local/x-ui/bin/geosite.dat "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat"
+   set_crontab "geoip.dat" 'wget -N --no-check-certificate -q -O /usr/local/x-ui/bin/geoip.dat "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat"'
+   set_crontab "geosite.dat" 'wget -N --no-check-certificate -q -O /usr/local/x-ui/bin/geosite.dat "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat"'
    echo -e  "${Blue}geoip、geosite数据更新完成${EndColor}"
+}
+
+function set_crontab() {
+  flay=0
+  #export res=$(echo $str1  |  grep $str2)
+  while read -r line
+  do
+     res=$(echo $line  |  grep "$1")
+     #echo $res
+	if [[ $res == "" ]]; then
+	    flay=1
+	else
+	    flay=0
+	    break
+	fi
+  done </var/spool/cron/crontabs/root
+  if [[ $flay == 1 ]]; then
+	sudo sed -i "\$a0 1 */5 * * $2" $cronpath/root
+  fi
 }
 
 function install_myxui() {
