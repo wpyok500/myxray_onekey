@@ -1,5 +1,6 @@
 # x-ui 配置文件路径
 1、配置文件：/usr/local/x-ui/bin/
+
 2、x-ui数据库（配置文件）：/etc/x-ui/x-ui.db
 
 # 本文教程均按脚本默认配置配图
