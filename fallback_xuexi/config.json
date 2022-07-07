@@ -1,0 +1,158 @@
+{
+  "log": null,
+  "routing": {
+    "rules": [
+      {
+        "inboundTag": [
+          "api"
+        ],
+        "outboundTag": "api",
+        "type": "field"
+      },
+      {
+        "ip": [
+          "geoip:private"
+        ],
+        "outboundTag": "blocked",
+        "type": "field"
+      },
+      {
+        "outboundTag": "blocked",
+        "protocol": [
+          "bittorrent"
+        ],
+        "type": "field"
+      }
+    ]
+  },
+  "dns": null,
+  "inbounds": [
+    {
+      "listen": "127.0.0.1",
+      "port": 62789,
+      "protocol": "dokodemo-door",
+      "settings": {
+        "address": "127.0.0.1"
+      },
+      "streamSettings": null,
+      "tag": "api",
+      "sniffing": null
+    },
+    {
+      "listen": null,
+      "port": 443,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "0ee36056-abf9-4708-e1ca-d90452cbaa50",
+            "flow": "xtls-rprx-direct"
+          }
+        ],
+        "decryption": "none",
+        "fallbacks": [
+          {
+            "name": "",
+            "alpn": "h2",
+            "path": "",
+            "dest": "8080",
+            "xver": 1
+          },
+          {
+            "name": "",
+            "alpn": "",
+            "path": "/datevm",
+            "dest": "36318",
+            "xver": 1
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "xtls",
+        "xtlsSettings": {
+          "serverName": "xuid.ozx2flay.ml",
+          "certificates": [
+            {
+              "certificateFile": "/etc/ssl/private/fullchain.cer",
+              "keyFile": "/etc/ssl/private/xuid.ozx2flay.ml.key"
+            }
+          ]
+        },
+        "tcpSettings": {
+          "header": {
+            "type": "none"
+          }
+        }
+      },
+      "tag": "inbound-443",
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls"
+        ]
+      }
+    },
+    {
+      "listen": null,
+      "port": 36318,
+      "protocol": "vmess",
+      "settings": {
+        "clients": [
+          {
+            "id": "bd2a829e-1eba-4cb5-9a2e-d065d8e43b3b",
+            "alterId": 0
+          }
+        ],
+        "disableInsecureEncryption": false
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "none",
+        "wsSettings": {
+          "acceptProxyProtocol": true,
+          "path": "/datevm",
+          "headers": {}
+        }
+      },
+      "tag": "inbound-36318",
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls"
+        ]
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "settings": {}
+    },
+    {
+      "protocol": "blackhole",
+      "settings": {},
+      "tag": "blocked"
+    }
+  ],
+  "transport": null,
+  "policy": {
+    "system": {
+      "statsInboundDownlink": true,
+      "statsInboundUplink": true
+    }
+  },
+  "api": {
+    "services": [
+      "HandlerService",
+      "LoggerService",
+      "StatsService"
+    ],
+    "tag": "api"
+  },
+  "stats": {},
+  "reverse": null,
+  "fakeDns": null
+}
