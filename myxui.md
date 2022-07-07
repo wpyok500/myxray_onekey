@@ -1,7 +1,11 @@
 # x-ui 配置文件路径
-1、配置文件：/usr/local/x-ui/bin/
+1、xray配置文件：/usr/local/x-ui/bin/config.json
 
 2、x-ui数据库（配置文件）：/etc/x-ui/x-ui.db
+
+3、x-ui快捷启动 x-ui.service :/etc/systemd/system/  或  /usr/local/x-ui/x-ui.service
+
+4、x-ui管理文件x-ui.sh ：/usr/local/x-ui/x-ui.sh
 
 # 本文教程均按脚本默认配置配图
 # 根据安装脚本时你设定的相关信息，设置X-UI面板，保存配置，并重启面板
