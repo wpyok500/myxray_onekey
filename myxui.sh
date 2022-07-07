@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.0.6"
+shell_version="1.0.7"
 
 function print_ok() {
   echo -e "${Blue}$1${EndColor}"
