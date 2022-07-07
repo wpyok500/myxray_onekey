@@ -850,7 +850,7 @@ echo -e "${Green}7   nginx配置xui相关设置${EndColor}"
 echo -e "${Green}8   卸载x-ui${EndColor}"
 echo -e "${Green}9   查看证书路径${EndColor}"
 echo -e "${Green}10  更新geoip、geosite${EndColor}"
-echo -e "${Green}11  更换域名{EndColor}"
+echo -e "${Green}11  更换域名"
 echo -e "${Green}0   更新脚本${EndColor}"
 read -rp "请输入数字：" menu_num
   case $menu_num in
