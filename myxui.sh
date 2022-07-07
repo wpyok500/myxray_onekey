@@ -546,6 +546,8 @@ function isfirewalld() {
 
 function update_sh() {
   ol_version=$(curl -L -s https://raw.githubusercontent.com/wpyok500/myxray_onekey/main/myxui.sh | grep "shell_version=" | head -1 | awk -F '=|"' '{print $3}')
+  echo -e "Github脚本版本号：${ol_version}"
+  echo -e "本地脚本版本号：${shell_version}"
   if [[ "$shell_version" != "$(echo -e "$shell_version\n$ol_version" | sort -rV | head -1)" ]]; then
     print_ok "存在新版本，是否更新 [Y/N]?"
     read -r update_confirm
