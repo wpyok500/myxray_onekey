@@ -292,6 +292,8 @@ function xuiconf() {
         echo "请输入 0-65535 之间的值"
         exit 1
       fi
+      systemctl restart nginx
+      /usr/local/x-ui/x-ui setting -port $xuiPORT && systemctl restart x-ui
 }
 
 function vlessconf() {
@@ -311,7 +313,7 @@ function createconf() {
 	xuiconf
 	vlessconf
 	createnginxconf
-	systemctl restart nginx
+  x-ui status
 	echo -e "${Blue}nginx 配置完成${EndColor}"
 }
 
@@ -738,6 +740,15 @@ function install_myxui() {
 	echo "请自行确保此端口没有被其他程序占用，并且确保 54321 端口已放行"
 }
 
+#更换域名
+function update_domain() {
+  domain_check
+	echo $domain >$ssl_cert_dir/domain #记录域名
+	autoGetSSL
+	manual_certificate
+  systemctl restart nginx
+}
+
 function domain_check() {
   read -rp "请输入你的域名信息(eg: ozx2flay.tk):" domain
   domain_ip=$(ping "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
@@ -837,6 +848,7 @@ echo -e "${Green}7   nginx配置xui相关设置${EndColor}"
 echo -e "${Green}8   卸载x-ui${EndColor}"
 echo -e "${Green}9   查看证书路径${EndColor}"
 echo -e "${Green}10  更新geoip、geosite${EndColor}"
+echo -e "${Green}11  更换域名{EndColor}"
 echo -e "${Green}0   更新脚本${EndColor}"
 read -rp "请输入数字：" menu_num
   case $menu_num in
@@ -877,6 +889,9 @@ read -rp "请输入数字：" menu_num
   10)
     update_geoip
     ;;
+  11)
+    update_domain
+    ;;  
   0)
     update_sh
     ;;   
