@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.0.7"
+shell_version="1.0.8"
 
 function print_ok() {
   echo -e "${Blue}$1${EndColor}"
@@ -282,7 +282,7 @@ EOF
 }
 
 function xuiconf() {
-  echo -e "${Blue}nginx相关x-ui设置，请注意确保与x-ui的面板设置保持一致${EndColor}"
+  echo -e "${Red}nginx相关x-ui设置，请注意确保与x-ui的面板设置保持一致${EndColor}"
   #sleep 3
   read -rp "请输入x-ui面板根路径(默认：myxui)：" rootpath
   [ -z "$rootpath" ] && rootpath="myxui"
@@ -293,7 +293,9 @@ function xuiconf() {
         exit 1
       fi
       systemctl restart nginx
-      /usr/local/x-ui/x-ui setting -port $xuiPORT && systemctl restart x-ui
+      /usr/local/x-ui/x-ui setting -port $xuiPORT
+      echo
+      #systemctl restart x-ui
 }
 
 function vlessconf() {
@@ -301,7 +303,7 @@ function vlessconf() {
   #sleep 3
   read -rp "请输入反代路径(默认：datevl)：" vlpath
   [ -z "$vlpath" ] && vlpath="datevl"
-  read -rp "请输入面板端口号(默认：54991)：" vlPORT
+  read -rp "请输入反代端口号(默认：54991)：" vlPORT
       [ -z "$vlPORT" ] && vlPORT="54991"
       if [[ $vlPORT -le 0 ]] || [[ $vlPORT -gt 65535 ]]; then
         echo "请输入 0-65535 之间的值"
@@ -322,7 +324,7 @@ function createfallbackconf() {
 	fallbackconf
 	systemctl restart nginx
 	echo -e "${Red}使用回落配置，请到x-ui面板配置fallback相关设置，否则伪装站点无法正常使用https访问${EndColor}"
-	echo -e "fallback配置{"alpn": "h2","dest": $fallbackPORT,"xver": 1}"
+	echo -e "入站监听端口：443   fallback配置{"alpn": "h2","dest": $fallbackPORT,"xver": 1}"
 	echo -e "${Blue}nginx 配置完成${EndColor}"
 	#sleep 2
 }
@@ -475,6 +477,7 @@ function firewall_GL1() {
 	read -rp "请输入数字：" menu_fwnum
 	  case $menu_fwnum in
 	  1)
+	  #网站访问反代端口开启设置等
          read -rp "请输入端口号(默认：54991)：" PORT
 	    [ -z "$PORT" ] && PORT="54991"
 	    if [[ $PORT -le 0 ]] || [[ $PORT -gt 65535 ]]; then
@@ -516,10 +519,17 @@ function firewall_install() {
 		  	  system_check
 		     fi
 			$INS install -y firewalld
-			firewall-cmd --zone=public --add-port=80/tcp --permanent && firewall-cmd --zone=public --add-port=443/tcp --permanent && firewall-cmd --zone=public --add-port=54321/tcp --permanent && firewall-cmd --reload
+			echo -e  "${Red}请确保本次输入的x-ui面板端口与x-ui安装时的面板端口保持一致${EndColor}"
+			read -rp "请输入面板端口号(默认：54321)：" x_ui_PORT
+      [ -z "$x_ui_PORT" ] && x_ui_PORT="54321"
+      if [[ $x_ui_PORT -le 0 ]] || [[ $x_ui_PORT -gt 65535 ]]; then
+        echo "请输入 0-65535 之间的值"
+        exit 1
+      fi
+			firewall-cmd --zone=public --add-port=80/tcp --permanent && firewall-cmd --zone=public --add-port=443/tcp --permanent && firewall-cmd --zone=public --add-port=${x_ui_PORT}/tcp --permanent && firewall-cmd --reload
 			systemctl restart firewalld.service #systemctl start firewalld.service
 			firewall-cmd --list-all
-			echo -e "${Blue}安装防火墙并开启80、443、54321端口${EndColor}"
+			echo -e "${Blue}安装防火墙并开启80、443、${x_ui_PORT}端口${EndColor}"
 		    ;;
 		  *) ;;
 		  esac
@@ -707,7 +717,15 @@ function install_myxui() {
 	system_check
 	port_exist_check 80
 	port_exist_check 443
-	port_exist_check 54321
+	echo -e  "${Red}请确保本次输入的x-ui面板端口与x-ui安装时的面板端口保持一致${EndColor}"
+	read -rp "请输入面板端口号(默认：54321)：" x_ui_PORT
+      [ -z "$x_ui_PORT" ] && x_ui_PORT="54321"
+      if [[ $x_ui_PORT -le 0 ]] || [[ $x_ui_PORT -gt 65535 ]]; then
+        echo "请输入 0-65535 之间的值"
+        exit 1
+      fi
+	#port_exist_check 54321
+	port_exist_check $x_ui_PORT
 	$INS update -y && $INS install -y jq openssl cron socat curl unzip vim tar
 	echo -e  "${Blue}依赖库安装完成${EndColor}"
 	curl https://get.acme.sh | sh && ~/.acme.sh/acme.sh --upgrade --auto-upgrade
@@ -721,6 +739,7 @@ function install_myxui() {
 	echo -e  "${Blue}安装x-ui${EndColor}"
 	bash <(curl -Ls https://raw.githubusercontent.com/vaxilu/x-ui/master/install.sh)
 	echo -e  "${Blue}x-ui安装完成${EndColor}"
+	echo -e  "${Red}请记得开放对应x-ui 面板端口${EndColor}"
 	update_geoip
 	~/.acme.sh/acme.sh --set-default-ca --server zerossl #Letsencrypt.ort BuyPass.com
 	read -rp "请输入你的邮箱信息(eg: mymail@gmail.com):" mymail
@@ -744,6 +763,8 @@ function install_myxui() {
 
 #更换域名
 function update_domain() {
+  rm -rf /etc/ssl/private
+	mkdir /etc/ssl/private && chmod 777 /etc/ssl/private
   domain_check
 	echo $domain >$ssl_cert_dir/domain #记录域名
 	autoGetSSL
