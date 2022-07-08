@@ -7,6 +7,10 @@
 
 4、x-ui管理文件x-ui.sh ：/usr/local/x-ui/x-ui.sh
 
+#如果使用cf 记得SSL 切换成安全
+![image](https://user-images.githubusercontent.com/14154547/177893982-a3ef1fb6-1356-47ba-abf4-ca08fb8a3ecd.png)
+
+
 # 本文教程均按脚本默认配置配图
 # 根据安装脚本时你设定的相关信息，设置X-UI面板，保存配置，并重启面板
 如果你用的是反代配置和仅面板配置，重启面板即可用https://你的域名/你的面板根路径，如https://exemple.com/myxui 进行访问进入面板了
