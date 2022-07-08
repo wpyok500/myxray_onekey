@@ -7,6 +7,8 @@
 
 4、x-ui管理文件x-ui.sh ：/usr/local/x-ui/x-ui.sh
 
+5、域名证书文件位置：/etc/ssl/private/fullchain.cer  和 /etc/ssl/private/你的域名.key
+
 # 如果使用cf 记得SSL 切换成安全
 ![image](https://user-images.githubusercontent.com/14154547/177893982-a3ef1fb6-1356-47ba-abf4-ca08fb8a3ecd.png)
 
