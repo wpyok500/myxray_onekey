@@ -34,10 +34,10 @@ deb-src https://nginx.org/packages/ubuntu/ $release nginx
 EOF
 
 # 卸载nginx
-apt-get autoremove nginx -y && rm -f /etc/apt/sources.list.d/nginx.list 
+apt-get autoremove nginx -y && apt-get purge nginx -y  && rm -f /etc/apt/sources.list.d/nginx.list 
 
 # 卸载openssl
-apt-get autoremove  openssl -y && rm -rf ssl
+apt-get autoremove  openssl -y && apt-get purge openssl -y && rm -rf ssl
 
 # 卸载acme
  /root/.acme.sh/acme.sh --uninstall &&  rm -rf /root/.acme.sh
