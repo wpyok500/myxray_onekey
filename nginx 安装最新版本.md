@@ -2,9 +2,11 @@
 
 source '/etc/os-release'
 
+apt-get update -y
+
 #nginx 必装依赖库
 
-sudo apt install curl gnupg2 ca-certificates lsb-release ubuntu-keyring
+apt install curl gnupg2 ca-certificates lsb-release ubuntu-keyring
 
 #设置nginx 版本
 
