@@ -12,9 +12,18 @@ apt update
 #安装nginx
 apt-get install -y nginx
 
-稳定版本
+# 稳定版本 配置
 #!/bin/bash
 cat > /etc/nginx/conf.d/default.conf <<-EOF
 deb https://nginx.org/packages/ubuntu/ $release nginx
 deb-src https://nginx.org/packages/ubuntu/ $release nginx
 EOF
+
+# 卸载nginx
+apt-get autoremove nginx -y && rm -f /etc/apt/sources.list.d/nginx.list 
+
+# 卸载openssl
+apt-get autoremove  openssl -y && rm -rf ssl
+
+# 卸载acme
+ /root/.acme.sh/acme.sh --uninstall &&  rm -rf /root/.acme.sh
