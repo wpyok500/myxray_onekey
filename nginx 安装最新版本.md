@@ -14,7 +14,11 @@ sudo apt install curl gnupg2 ca-certificates lsb-release ubuntu-keyring
 
 #Codename（bionic xenial）请查阅对应nginx编译版本代号：http://nginx.org/en/linux_packages.html#stable
 
-echo "deb http://nginx.org/packages/ubuntu $(lsb_release -cs) nginx" >/etc/apt/sources.list.d/nginx.list
+#echo "deb http://nginx.org/packages/ubuntu $(lsb_release -cs) nginx" >/etc/apt/sources.list.d/nginx.list
+
+echo "deb https://nginx.org/packages/ubuntu/ $(lsb_release -cs) nginx" >/etc/apt/sources.list.d/nginx.list
+
+sed -i "\$a deb-src https://nginx.org/packages/ubuntu/ $(lsb_release -cs) nginx" /etc/apt/sources.list.d/nginx.list
 
 curl -fsSL https://nginx.org/keys/nginx_signing.key | apt-key add -
 
