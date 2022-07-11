@@ -2,8 +2,6 @@
 
 source '/etc/os-release'
 
-apt-get update -y
-
 #nginx 必装依赖库
 
 apt install curl gnupg2 ca-certificates lsb-release ubuntu-keyring
@@ -26,7 +24,7 @@ curl -fsSL https://nginx.org/keys/nginx_signing.key | apt-key add -
 
 #更新包
 
-apt update
+apt-get update -y
 
 #安装nginx
 
