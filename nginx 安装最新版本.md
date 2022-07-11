@@ -22,13 +22,10 @@ sed -i "\$a deb-src https://nginx.org/packages/ubuntu/ $(lsb_release -cs) nginx"
 
 curl -fsSL https://nginx.org/keys/nginx_signing.key | apt-key add -
 
-#更新包
+#更新包并安装安装nginx
 
-apt-get update -y
+apt-get update -y && apt-get install -y nginx
 
-#安装nginx
-
-apt-get install -y nginx
 
 # 稳定版本 配置
 #!/bin/bash
