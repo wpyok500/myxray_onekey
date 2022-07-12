@@ -103,6 +103,8 @@ cronpath="/var/spool/cron/crontabs"
 
 xray run /usr/local/etc/xray/config.json
 
+systemctl status xray
+
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install --version 1.5.8
 ```
 installed: /usr/local/bin/xray
