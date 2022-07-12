@@ -50,6 +50,8 @@ curl https://get.acme.sh | sh && ~/.acme.sh/acme.sh --upgrade --auto-upgrade
 cp -r /root/.acme.sh/${domain}_ecc/*.* $ssl_cert_dir
 set_nobody_certificate $ssl_cert_dir
 
+ssl_cert_dir="/etc/ssl/private" 
+cert_group="nogroup"
 function set_nobody_certificate() {
 	for file in $1/*
 	do
@@ -68,6 +70,7 @@ function set_nobody_certificate() {
 		fi
 	done
 }
+
 ```
 
 # 卸载nginx
