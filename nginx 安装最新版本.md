@@ -95,3 +95,5 @@ apt-get autoremove  openssl -y && apt-get purge openssl -y && rm -rf ssl
 	xray_link
 }
 ```
+/etc/nginx/conf.d/default.conf
+
