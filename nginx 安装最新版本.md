@@ -101,3 +101,6 @@ cronpath="/var/spool/cron/crontabs"
 
 /etc/nginx/conf.d/default.conf
 
+xray run /usr/local/etc/xray/config.json
+
+bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install --version 1.5.8
