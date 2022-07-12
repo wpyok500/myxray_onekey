@@ -87,3 +87,11 @@ apt-get autoremove  openssl -y && apt-get purge openssl -y && rm -rf ssl
  ```
  nginx -s reload &&  systemctl restart nginx && systemctl status nginx
  ```
+ ```
+ function modify_uuid() {
+	UUID=$(cat /proc/sys/kernel/random/uuid)
+	sed -i 's/"id": ""/"id": "'${UUID}'"/g'  $xray_conf_dir/config.json
+	echo  -e "${Blue}UUID更改完成${EndColor}"
+	xray_link
+}
+```
