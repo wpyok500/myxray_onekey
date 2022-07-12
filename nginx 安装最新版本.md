@@ -95,5 +95,9 @@ apt-get autoremove  openssl -y && apt-get purge openssl -y && rm -rf ssl
 	xray_link
 }
 ```
+xray_conf_dir="/usr/local/etc/xray"
+
+cronpath="/var/spool/cron/crontabs"
+
 /etc/nginx/conf.d/default.conf
 
