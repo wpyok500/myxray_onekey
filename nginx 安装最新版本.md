@@ -1,6 +1,7 @@
 # 依赖库
 
 apt-get update -y && apt install -y jq openssl cron socat curl unzip vim tar
+
 apt-get update -y && apt install curl gnupg2 ca-certificates lsb-release ubuntu-keyring
 
 # 安装nginx 最新版本
@@ -81,3 +82,8 @@ apt-get autoremove  openssl -y && apt-get purge openssl -y && rm -rf ssl
 
 # 卸载acme
  /root/.acme.sh/acme.sh --uninstall &&  rm -rf /root/.acme.sh
+ 
+ # 常用命令
+ ```
+ nginx -s reload &&  systemctl restart nginx && systemctl status nginx
+ ```
