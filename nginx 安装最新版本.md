@@ -108,10 +108,18 @@ systemctl status xray
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install --version 1.5.8
 ```
 installed: /usr/local/bin/xray
-installed: /usr/local/share/xray/geoip.dat
-installed: /usr/local/share/xray/geosite.dat
+
 installed: /etc/systemd/system/xray.service
 installed: /etc/systemd/system/xray@.service
+
+installed: /usr/local/bin/xray
+installed: /usr/local/etc/xray/*.json
+
+installed: /usr/local/share/xray/geoip.dat
+installed: /usr/local/share/xray/geosite.dat
+
+installed: /var/log/xray/access.log
+installed: /var/log/xray/error.log
 
 ```
 # 获取xray最新版本
