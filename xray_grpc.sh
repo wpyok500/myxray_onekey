@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.0.0"
+shell_version="1.0.1"
 current_version=""
 last_version=""
 xray_conf_dir="/usr/local/etc/xray"
@@ -766,6 +766,12 @@ function xray_link() {
   print_ok "=====================Xray链接======================"
 }
 
+#更新xray
+function uapate_xray {
+  get_xray_lasttags
+  bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install --version ${last_version}
+}
+
 #更换域名
 function update_domain() {
   rm -rf /etc/ssl/private
@@ -821,6 +827,7 @@ echo -e "${Green}8   卸载x-ui${EndColor}"
 echo -e "${Green}9   查看证书路径${EndColor}"
 echo -e "${Green}10  更新geoip、geosite${EndColor}"
 echo -e "${Green}11  更换域名"
+echo -e "${Green}12  更新xray"
 echo -e "${Green}0   更新脚本${EndColor}"
 read -rp "请输入数字：" menu_num
   case $menu_num in
@@ -863,7 +870,10 @@ read -rp "请输入数字：" menu_num
     ;;
   11)
     update_domain
-    ;;  
+    ;;
+  12)
+    uapate_xray
+    ;;    
   0)
     update_sh
     ;;   
