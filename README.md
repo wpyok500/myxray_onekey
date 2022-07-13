@@ -24,5 +24,10 @@ bash myxui.sh
 
 > [# myxui脚本教程](https://github.com/wpyok500/myxray_onekey/blob/main/myxui.md)
 
+# xray grpc 一键安装脚本
+```
+wget -N --no-check-certificate -q "https://raw.githubusercontent.com/wpyok500/myxray_onekey/main/xray_grpc.sh" && chmod +x xray_grpc.sh && bash xray_grpc.sh
+```
+
 
 脚本主要参考自https://github.com/wulabing/Xray_onekey，特此感谢大佬。
