@@ -242,14 +242,16 @@ function update_sh() {
     [yY][eE][sS] | [yY])
       wget -N --no-check-certificate -q "https://raw.githubusercontent.com/wpyok500/myxray_onekey/main/xray_grpc.sh" && chmod +x myxui.sh
       echo -e "${Blue}更新完成${EndColor}"
-      echo -e "您可以通过 bash $0 执行本程序"
+      #echo -e "您可以通过 bash $0 执行本程序"
+      bash $0
       exit 0
       ;;
     *) ;;
     esac
   else
     echo -e "${Blue}当前版本为最新版本${EndColor}"
-    echo -e "您可以通过 bash $0 执行本程序"
+    #echo -e "您可以通过 bash $0 执行本程序"
+    bash $0
   fi
 }
 
@@ -658,7 +660,8 @@ get_xray_status() {
     current_version="$(/usr/local/bin/xray -version | awk 'NR==1 {print $2}')"
     run_status="$(systemctl status xray | awk 'NR==5 {print $2 $3}')"
 
-    echo "当前版本：${current_version}  运行状态：${run_status}"
+    echo -e "当前版本：${current_version}  运行状态：${run_status}"
+    echo -e "本地脚本版本：${shell_version}"
     #current_version="v${current_version#v}"
   else
     current_version=""
