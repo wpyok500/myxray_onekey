@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.0.3"
+shell_version="1.0.4"
 current_version=""
 last_version=""
 xray_conf_dir="/usr/local/etc/xray"
@@ -888,6 +888,7 @@ function install_myxui() {
 	nginx -s reload &&  systemctl restart nginx
 	#xray run /usr/local/etc/xray/config.json
 	systemctl start xray
+	autoUPxray
 	echo -e  "${Blue}全部安装完成${EndColor}"
 	echo -e "${Purple}公钥文件路径： $ssl_cert_dir/fullchain.cer ${EndColor}"
      echo -e "${Purple}密钥文件路径： $ssl_cert_dir/$domain.key ${EndColor}"
@@ -908,7 +909,7 @@ echo -e "${Green}9   查看证书路径${EndColor}"
 echo -e "${Green}10  更新geoip、geosite${EndColor}"
 echo -e "${Green}11  更换域名"
 echo -e "${Green}12  更新xray"
-echo -e "${Green}13  设置每2天自动更新xray和geoip.dat、geosite.dat"
+#echo -e "${Green}13  设置每2天自动更新xray和geoip.dat、geosite.dat"
 echo -e "${Green}0   更新脚本${EndColor}"
 get_xray_status
 read -rp "请输入数字：" menu_num
@@ -956,9 +957,9 @@ read -rp "请输入数字：" menu_num
   12)
     uapate_xray
     ;;
-  13)
-    autoUPxray
-    ;;      
+  #13)
+  #  autoUPxray
+  # ;;      
   0)
     update_sh
     ;;   
