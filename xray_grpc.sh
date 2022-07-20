@@ -888,6 +888,7 @@ function install_myxui() {
 	nginx -s reload &&  systemctl restart nginx
 	#xray run /usr/local/etc/xray/config.json
 	systemctl start xray
+	echo -e "设置每2天自动更新xray和geoip.dat、geosite.dat"
 	autoUPxray
 	echo -e  "${Blue}全部安装完成${EndColor}"
 	echo -e "${Purple}公钥文件路径： $ssl_cert_dir/fullchain.cer ${EndColor}"
