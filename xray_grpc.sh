@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.0.1"
+shell_version="1.0.2"
 current_version=""
 last_version=""
 xray_conf_dir="/usr/local/etc/xray"
@@ -315,6 +315,7 @@ function delautogetssl() {
     sed -i '/auto_ssl/d' $cronpath/root
     sed -i '/geoip.dat/d' $cronpath/root
     sed -i '/geosite.dat/d' $cronpath/root
+    sed -i '/auto_up_xray/d' $cronpath/root
     #cat $cronpath/root | while read line
     #do
     #	 if [[ $line == *"autogetssl"* ]]; then
@@ -558,6 +559,7 @@ EOF
   
   chmod +x $ssl_cert_dir/auto_ssl.sh
   echo  -e "${Blue}auto_ssl.sh运行权限完成${EndColor}"
+  #命令 crontab -e
   #sed -i '$a0 1 1 * * bash '$ssl_cert_dir'/auto_ssl.sh' /var/spool/cron/crontabs/root
     isautogetssl=0
   #export res=$(echo $str1  |  grep $str2)
@@ -642,10 +644,23 @@ get_current_version() {
   # Get the CURRENT_VERSION
   if [[ -f '/usr/local/bin/xray' ]]; then
     current_version="$(/usr/local/bin/xray -version | awk 'NR==1 {print $2}')"
+    run_status="$(systemctl status xray | awk 'NR==5 {print $2 $3}')" && echo ${run_status}
     #current_version="v${current_version#v}"
   else
     current_version=""
   fi 
+}
+
+get_xray_status() {
+  if [[ -f '/usr/local/bin/xray' ]]; then
+    current_version="$(/usr/local/bin/xray -version | awk 'NR==1 {print $2}')"
+    run_status="$(systemctl status xray | awk 'NR==5 {print $2 $3}')"
+
+    echo "当前版本：${current_version}  运行状态：${run_status}"
+    #current_version="v${current_version#v}"
+  else
+    current_version=""
+  fi  
 }
 
 function createnginxconf() {
@@ -783,6 +798,56 @@ function update_domain() {
   systemctl restart nginx
 }
 
+#每2天自动更新xray
+function set_up_xray() {
+if [[ -f '/usr/local/bin/xray' ]]; then
+rm -rf $ssl_cert_dir/auto_up_xray.sh
+cat > $ssl_cert_dir/auto_up_xray.sh <<-EOF
+#!/bin/bash
+last_version=""
+function get_xray_lasttags() {
+  # 下载xray_releases  json文档
+  wget -N --no-check-certificate -q "https://api.github.com/repos/XTLS/Xray-core/releases" -O /home/wpyadmin/xray_releases  && chmod  777 /home/wpyadmin/xray_releases
+  #获取最新版本
+  tmp_file=/home/wpyadmin/xray_releases && releases_list=(\$(sed 'y/,/\n/' "\$tmp_file" | grep 'tag_name' | awk -F '"' '{print \$4}')) && echo  xray最新版本：\${releases_list[0]/v/}
+  last_version=\${releases_list[0]/v/}
+}
+function uapate_xray {
+  get_xray_lasttags
+  bash -c "\$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install --version \${last_version}
+}
+uapate_xray
+EOF
+  fi 
+}
+
+#每2天自动更新xray
+function auto_up_xray() {
+  while read -r line
+  do
+     res=$(echo $line  |  grep "auto_up_xray.sh")
+     #echo $res
+	if [[ $res == "" ]]; then
+	    isautoupxray=1
+	else
+	    isautoupxray=0
+	    break
+	fi
+  done <$cronpath/root
+  if [[ $isautoupxray == 1 ]]; then
+	sed -i '$a0 1 */2 * * bash '$ssl_cert_dir'/auto_up_xray.sh' $cronpath/root
+  fi
+}
+
+#每2天自动更新xray
+function autoUPxray() {
+if [[ -f '/usr/local/bin/xray' ]]; then
+auto_up_xray
+set_up_xray
+echo -e  "${Blue}设置完成${EndColor}"
+fi 
+}
+
 function install_myxui() {
 	echo -e  "${Blue}开始安装${EndColor}"
 	isins=1	
@@ -828,7 +893,9 @@ echo -e "${Green}9   查看证书路径${EndColor}"
 echo -e "${Green}10  更新geoip、geosite${EndColor}"
 echo -e "${Green}11  更换域名"
 echo -e "${Green}12  更新xray"
+echo -e "${Green}13  设置每2天自动更新xray"
 echo -e "${Green}0   更新脚本${EndColor}"
+get_xray_status
 read -rp "请输入数字：" menu_num
   case $menu_num in
   1)
@@ -873,7 +940,10 @@ read -rp "请输入数字：" menu_num
     ;;
   12)
     uapate_xray
-    ;;    
+    ;;
+  13)
+    autoUPxray
+    ;;      
   0)
     update_sh
     ;;   
