@@ -903,7 +903,7 @@ echo -e "${Green}9   查看证书路径${EndColor}"
 echo -e "${Green}10  更新geoip、geosite${EndColor}"
 echo -e "${Green}11  更换域名"
 echo -e "${Green}12  更新xray"
-echo -e "${Green}13  设置每2天自动更新xray和geoip.dat、geosite.dat"
+#echo -e "${Green}13  设置每2天自动更新xray和geoip.dat、geosite.dat"
 echo -e "${Green}0   更新脚本${EndColor}"
 get_xray_status
 read -rp "请输入数字：" menu_num
@@ -951,9 +951,9 @@ read -rp "请输入数字：" menu_num
   12)
     uapate_xray
     ;;
-  13)
-    autoUPxray
-    ;;      
+  #13)
+  #  autoUPxray
+  #  ;;      
   0)
     update_sh
     ;;   
