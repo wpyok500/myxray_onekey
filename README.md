@@ -1,6 +1,6 @@
 使用脚本安装过程前，如有套CF CDN代理请先关闭，证书安装时要验证ip
 
-# myxray_onekey
+# myxray_onekey (有问题，没时间处理)
 xray VLESS over TCP with XTLS + 回落 &amp; 分流 to WHATEVER（终极配置）一键安装脚本
 
 安装脚本
