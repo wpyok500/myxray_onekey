@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.0.4"
+shell_version="1.0.5"
 current_version=""
 last_version=""
 xray_conf_dir="/usr/local/etc/xray"
@@ -830,8 +830,8 @@ EOF
 function auto_up_xray() {
   while read -r line
   do
+     echo $line
      res=$(echo $line  |  grep "auto_up_xray.sh")
-     res1=$(echo $line  |  grep "install-geodata")
      #echo $res
 	if [[ $res == "" ]]; then
 	    isautoupxray=1
@@ -839,19 +839,12 @@ function auto_up_xray() {
 	    isautoupxray=0
 	    break
 	fi
-	if [[ $res1 == "" ]]; then
-	    isinstall_gd=1
-	else
-	    isinstall_gd=0
-	    break
-	fi
   done <$cronpath/root
   if [[ $isautoupxray == 1 ]]; then
 	sed -i '$a0 1 */2 * * bash '$ssl_cert_dir'/auto_up_xray.sh' $cronpath/root
   fi
-  if [[ $isinstall_gd == 1 ]]; then
-	sed -i '$a0 1 */2 * * bash -c "\$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install-geodata' $cronpath/root
-  fi
+  sed -i '/install-geodata/d' "/var/spool/cron/crontabs/root"
+  sed -i '$a0 1 */2 * * bash -c "\$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install-geodata' $cronpath/root
 }
 
 #每2天自动更新xray
@@ -910,7 +903,7 @@ echo -e "${Green}9   查看证书路径${EndColor}"
 echo -e "${Green}10  更新geoip、geosite${EndColor}"
 echo -e "${Green}11  更换域名"
 echo -e "${Green}12  更新xray"
-#echo -e "${Green}13  设置每2天自动更新xray和geoip.dat、geosite.dat"
+echo -e "${Green}13  设置每2天自动更新xray和geoip.dat、geosite.dat"
 echo -e "${Green}0   更新脚本${EndColor}"
 get_xray_status
 read -rp "请输入数字：" menu_num
@@ -958,9 +951,9 @@ read -rp "请输入数字：" menu_num
   12)
     uapate_xray
     ;;
-  #13)
-  #  autoUPxray
-  # ;;      
+  13)
+    autoUPxray
+    ;;      
   0)
     update_sh
     ;;   
