@@ -830,7 +830,7 @@ EOF
 function auto_up_xray() {
   while read -r line
   do
-     echo $line
+     #echo $line
      res=$(echo $line  |  grep "auto_up_xray.sh")
      #echo $res
 	if [[ $res == "" ]]; then
