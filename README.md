@@ -1,3 +1,5 @@
+使用脚本安装过程前，如有套CF CDN代理请先关闭，证书安装时要验证ip
+
 # myxray_onekey
 xray VLESS over TCP with XTLS + 回落 &amp; 分流 to WHATEVER（终极配置）一键安装脚本
 
@@ -28,6 +30,8 @@ bash myxui.sh
 ```
 wget -N --no-check-certificate -q "https://raw.githubusercontent.com/wpyok500/myxray_onekey/main/xray_grpc.sh" && chmod +x xray_grpc.sh && bash xray_grpc.sh
 ```
+
+！！！grpc脚本请注意在cf cdn 处开启grpc服务。
 
 
 脚本主要参考自https://github.com/wulabing/Xray_onekey，特此感谢大佬。
