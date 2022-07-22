@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.0.5"
+shell_version="1.0.6"
 current_version=""
 last_version=""
 xray_conf_dir="/usr/local/etc/xray"
@@ -859,7 +859,7 @@ fi
 function modify_uuid() {
 	UUID=$(cat /proc/sys/kernel/random/uuid)
 	#sed -i 's/"id": ""/"id": "'${UUID}'"/g'  $xray_conf_dir/config.json
-	sed -i 's/"id": ".*"$/"id": "'${UUID}'"/g'  /usr/local/etc/xray/config.json
+	sed -i 's/"id": ".*"$/"id": "'${UUID}'"/g'  $xray_conf_dir/config.json
 	systemctl stop xray
 	systemctl start xray
 	echo  -e "${Blue}UUID更改完成${EndColor}"
