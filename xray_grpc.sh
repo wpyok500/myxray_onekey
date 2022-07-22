@@ -660,7 +660,7 @@ get_xray_status() {
     current_version="$(/usr/local/bin/xray -version | awk 'NR==1 {print $2}')"
     run_status="$(systemctl status xray | awk 'NR==5 {print $2 $3}')"
 
-    echo -e "当前版本：${current_version}  运行状态：${run_status}"
+    echo -e "当前Xray版本：${current_version}  运行状态：${run_status}"
     echo -e "本地脚本版本：${shell_version}"
     #current_version="v${current_version#v}"
   else
