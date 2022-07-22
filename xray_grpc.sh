@@ -856,6 +856,16 @@ echo -e  "${Blue}设置完成${EndColor}"
 fi 
 }
 
+function modify_uuid() {
+	UUID=$(cat /proc/sys/kernel/random/uuid)
+	#sed -i 's/"id": ""/"id": "'${UUID}'"/g'  $xray_conf_dir/config.json
+	sed -i 's/"id": ".*"$/"id": "'${UUID}'"/g'  /usr/local/etc/xray/config.json
+	systemctl stop xray
+	systemctl start xray
+	echo  -e "${Blue}UUID更改完成${EndColor}"
+	xray_link
+}
+
 function install_myxui() {
 	echo -e  "${Blue}开始安装${EndColor}"
 	isins=1	
@@ -903,6 +913,7 @@ echo -e "${Green}9   查看证书路径${EndColor}"
 echo -e "${Green}10  更新geoip、geosite${EndColor}"
 echo -e "${Green}11  更换域名"
 echo -e "${Green}12  更新xray"
+echo -e "${Green}13  更换UUID"
 #echo -e "${Green}13  设置每2天自动更新xray和geoip.dat、geosite.dat"
 echo -e "${Green}0   更新脚本${EndColor}"
 get_xray_status
@@ -951,6 +962,9 @@ read -rp "请输入数字：" menu_num
   12)
     uapate_xray
     ;;
+  13)
+    modify_uuid
+    ;;  
   #13)
   #  autoUPxray
   #  ;;      
