@@ -15,10 +15,11 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.0.7"
+shell_version="1.0.8"
 current_version=""
 last_version=""
 xray_conf_dir="/usr/local/etc/xray"
+nginx_conf="/etc/nginx/conf.d/default.conf"
 
 function print_ok() {
   echo -e "${Blue}$1${EndColor}"
@@ -85,8 +86,8 @@ function install_nginx() {
     echo -e "${Red}输入错误，将使用元素周期表伪装站点${EndColor}"
     ;;
   esac
-  sed -i 's/root   \/usr\/share\/nginx\/html/root   \/www\/xray_web/g' /etc/nginx/conf.d/default.conf
-  sed -i 's/index  index.html index.htm/index index.php index.html index.htm default.php default.htm default.html/g' /etc/nginx/conf.d/default.conf
+  sed -i 's/root   \/usr\/share\/nginx\/html/root   \/www\/xray_web/g' ${nginx_conf}
+  sed -i 's/index  index.html index.htm/index index.php index.html index.htm default.php default.htm default.html/g' ${nginx_conf}
   wget --no-check-certificate -c  -O /www/xray_web/web.zip $web_link
   unzip -d /www/xray_web /www/xray_web/web.zip
   rm -rf /www/xray_web/web.zip
@@ -95,8 +96,8 @@ function install_nginx() {
 }
 
 function nginxdefultconf() {
-rm -rf /etc/nginx/conf.d/default.conf
-	cat > /etc/nginx/conf.d/default.conf <<-EOF
+rm -rf ${nginx_conf}
+	cat > ${nginx_conf} <<-EOF
 server
 {
     listen 80 default_server;
@@ -264,9 +265,6 @@ function manual_certificate() {
 	cp -r /root/.acme.sh/${DOMAIN}_ecc/*.* $ssl_cert_dir
 	set_nobody_certificate $ssl_cert_dir
 	echo -e  "${Blue}SSL 证书配置到 $ssl_cert_dir${EndColor}"
-	x-ui restart
-	#sleep 3
-	#x-ui status
 }
 
 
@@ -434,6 +432,7 @@ function system_check() {
 }
 
 function domain_check() {
+  echo -e "${Red}如果开启了CF CDN代理请先关闭，脚本安装完后在开启${EndColor}"
   read -rp "请输入你的域名信息(eg: ozx2flay.tk):" domain
   domain_ip=$(ping "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
   echo  -e "${Blue}正在获取 IP 地址信息，请耐心等待${EndColor}"
@@ -627,8 +626,8 @@ function install_nginx() {
     echo -e "${Red}输入错误，将使用元素周期表伪装站点${EndColor}"
     ;;
   esac
-  sed -i 's/root   \/usr\/share\/nginx\/html/root   \/www\/xray_web/g' /etc/nginx/conf.d/default.conf
-  sed -i 's/index  index.html index.htm/index index.php index.html index.htm default.php default.htm default.html/g' /etc/nginx/conf.d/default.conf
+  sed -i 's/root   \/usr\/share\/nginx\/html/root   \/www\/xray_web/g' ${nginx_conf}
+  sed -i 's/index  index.html index.htm/index index.php index.html index.htm default.php default.htm default.html/g' ${nginx_conf}
   wget --no-check-certificate -c  -O /www/xray_web/web.zip $web_link
   unzip -d /www/xray_web /www/xray_web/web.zip
   rm -rf /www/xray_web/web.zip
@@ -670,8 +669,8 @@ get_xray_status() {
 
 function createnginxconf() {
 DOMAIN=$(cat ${ssl_cert_dir}/domain)
-rm -rf /etc/nginx/conf.d/default.conf
-cat > /etc/nginx/conf.d/default.conf <<-EOF
+rm -rf ${nginx_conf}
+cat > ${nginx_conf} <<-EOF
 server
 {
     listen 443 ssl http2 so_keepalive=on;
@@ -800,13 +799,31 @@ function uapate_xray {
 
 #更换域名
 function update_domain() {
+  systemctl stop xray
   rm -rf /etc/ssl/private
 	mkdir /etc/ssl/private && chmod 777 /etc/ssl/private
   domain_check
 	echo $domain >$ssl_cert_dir/domain #记录域名
 	autoGetSSL
 	manual_certificate
+	update_confinfo
+	systemctl start xray
   systemctl restart nginx
+  xray_link
+}
+
+function update_confinfo() {
+#/usr/local/etc/xray/config.json
+DOMAIN=$(cat ${ssl_cert_dir}/domain)
+chmod 777 ${xray_conf_dir}/config.json
+sed -i 's/"serviceName": ".*"$/"serviceName": "'${DOMAIN}'"/g'  ${xray_conf_dir}/config.json
+chmod 755 ${xray_conf_dir}/config.json
+
+chmod 777 ${nginx_conf}
+sed -i 's/"id": ".*"$/"id": "'${DOMAIN}'"/g'  ${nginx_conf}
+sed -i 's/ssl_certificate_key    \/etc\/ssl\/private\/.*$/ssl_certificate_key    \/etc\/ssl\/private\/'${DOMAIN}'.key;/g' ${nginx_conf}
+sed -i 's/location \/.*$/location \/'${DOMAIN}' {/g' ${nginx_conf}
+chmod 755 ${nginx_conf}
 }
 
 #每2天自动更新xray
@@ -901,8 +918,9 @@ function install_myxui() {
 	autoUPxray
 	echo -e  "${Blue}全部安装完成${EndColor}"
 	echo -e "${Purple}公钥文件路径： $ssl_cert_dir/fullchain.cer ${EndColor}"
-     echo -e "${Purple}密钥文件路径： $ssl_cert_dir/$domain.key ${EndColor}"
-     xray_link
+  echo -e "${Purple}密钥文件路径： $ssl_cert_dir/$domain.key ${EndColor}"
+  xray_link
+  echo "请在CDN开启GRPC开关，同时也可以开启CDN代理"
 }
 
 menu() {
