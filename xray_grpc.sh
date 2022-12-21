@@ -787,7 +787,8 @@ function xray_link() {
 
   print_ok "=====================Xray链接======================"
   echo "URL 链接（VLESS + grpc +  TLS）"
-  echo "vless://$UUID@$DOMAIN:443?encryption=none&flow=xtls-rprx-direct-udp443&security=tls&type=grpc&serviceName=$DOMAIN&mode=gun#grpc_$DOMAIN"
+  #echo "vless://$UUID@$DOMAIN:443?encryption=none&flow=xtls-rprx-direct-udp443&security=tls&type=grpc&serviceName=$DOMAIN&mode=gun#grpc_$DOMAIN"
+  echo "vless://$UUID@$DOMAIN:443?encryption=none&security=tls&type=grpc&serviceName=$DOMAIN&mode=gun#grpc_$DOMAIN"
   print_ok "=====================Xray链接======================"
 }
 
