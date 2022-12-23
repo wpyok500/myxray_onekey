@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.0.9"
+shell_version="1.1.0"
 current_version=""
 last_version=""
 xray_conf_dir="/usr/local/etc/xray"
@@ -789,8 +789,26 @@ function xray_link() {
   echo "URL 链接（VLESS + grpc +  TLS）"
   #echo "vless://$UUID@$DOMAIN:443?encryption=none&flow=xtls-rprx-direct-udp443&security=tls&type=grpc&serviceName=$DOMAIN&mode=gun#grpc_$DOMAIN"
   echo "vless://$UUID@$DOMAIN:443?encryption=none&security=tls&type=grpc&serviceName=$DOMAIN&mode=gun#grpc_$DOMAIN"
+  
+  qrencode_GL "vless://$UUID@$DOMAIN:443?encryption=none&security=tls&type=grpc&serviceName=$DOMAIN&mode=gun#grpc_$DOMAIN"
   print_ok "=====================Xray链接======================"
 }
+
+# 安装qrencode
+function qrencode_GL() {
+	if [[ $(dpkg -l | grep -w qrencode) ]];
+	then
+		qrencode  -o "/www/xray_web/xray.png" $1
+		echo ""
+		echo "二维码链接：https://$DOMAIN/xray.png"
+	else
+		echo -e "${Red}系统未安装二维码qrencode，开始安装qrencode${EndColor}"
+		$INS install -y qrencode
+		qrencode_GL $1
+	     #exit 1
+	fi
+}
+
 
 #更新xray
 function uapate_xray {
