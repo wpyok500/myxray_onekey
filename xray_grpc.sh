@@ -816,10 +816,10 @@ function xray_link() {
   #qrencode_GL "vless://$UUID@$DOMAIN:443?encryption=none&security=tls&type=grpc&serviceName=$DOMAIN&mode=gun#grpc_$DOMAIN"
   rm -rf /www/xray_web/qrencode
   mkdir /www/xray_web/qrencode
-  UUID=$(cat /proc/sys/kernel/random/uuid)
-  qrencode  -o "/www/xray_web/qrencode/${UUID}.png" "vless://$UUID@$DOMAIN:443?encryption=none&security=tls&type=grpc&serviceName=$DOMAIN&mode=gun#grpc_$DOMAIN"
+  quuid=$(cat /proc/sys/kernel/random/uuid)
+  qrencode  -o "/www/xray_web/qrencode/${quuid}.png" "vless://$UUID@$DOMAIN:443?encryption=none&security=tls&type=grpc&serviceName=$DOMAIN&mode=gun#grpc_$DOMAIN"
 
-  echo -e "\n二维码链接：\nhttps://$DOMAIN/qrencode/${UUID}.png"
+  echo -e "\n二维码链接：\nhttps://$DOMAIN/qrencode/${quuid}.png"
   print_ok "=====================Xray链接======================"
 }
 
