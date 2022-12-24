@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.1.2"
+shell_version="1.1.3"
 current_version=""
 last_version=""
 xray_conf_dir="/usr/local/etc/xray"
@@ -943,7 +943,7 @@ function install_myxui() {
 	system_check
 	port_exist_check 80
 	port_exist_check 443
-	$INS update -y && $INS install -y jq openssl cron socat curl unzip vim tar
+	$INS update -y && $INS install -y jq openssl cron socat curl unzip vim tar qrencode
 	install_acme
 	autoGetSSL
 	install_nginx
