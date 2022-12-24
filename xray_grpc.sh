@@ -241,7 +241,7 @@ function update_sh() {
     read -r update_confirm
     case $update_confirm in
     [yY][eE][sS] | [yY])
-      wget -N --no-check-certificate -q "https://raw.githubusercontent.com/wpyok500/myxray_onekey/main/xray_grpc.sh" && chmod +x myxui.sh
+      wget -N --no-check-certificate -q "https://raw.githubusercontent.com/wpyok500/myxray_onekey/main/xray_grpc.sh" && chmod +x xray_grpc.sh
       echo -e "${Blue}更新完成${EndColor}"
       #echo -e "您可以通过 bash $0 执行本程序"
       bash $0
