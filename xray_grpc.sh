@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.1.0"
+shell_version="1.1.1"
 current_version=""
 last_version=""
 xray_conf_dir="/usr/local/etc/xray"
@@ -380,6 +380,28 @@ function is_root() {
     echo -e  "${Blue}当前用户是 root 用户，开始安装流程${EndColor}"
   else
     echo -e  "${Red}当前用户不是 root 用户，请切换到 root 用户后重新执行脚本${EndColor}"
+    exit 1
+  fi
+}
+
+# 检查系统
+function check_system()
+{
+  source '/etc/os-release'
+  if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
+    echo -e  "当前系统为 Centos ${VERSION_ID} ${VERSION}${EndColor}"
+    INS="yum"
+  elif [[ "${ID}" == "ol" ]]; then
+    echo -e  "当前系统为 Oracle Linux ${VERSION_ID} ${VERSION}${EndColor}"
+    INS="yum"
+  elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 9 ]]; then
+    echo -e  "当前系统为 Debian ${VERSION_ID} ${VERSION}${EndColor}"
+    INS="apt"
+  elif [[ "${ID}" == "ubuntu" && $(echo "${VERSION_ID}" | cut -d '.' -f1) -ge 16 ]]; then
+    echo -e  "${Blue}当前系统为 Ubuntu ${VERSION_ID} ${UBUNTU_CODENAME}${EndColor}"
+    INS="apt-get"
+  else
+    echo -e  "${Red}当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内${EndColor}"
     exit 1
   fi
 }
@@ -784,13 +806,20 @@ EOF
 function xray_link() {
   UUID=$(cat ${xray_conf_dir}/config.json | sed 's|//.*||' | jq .inbounds[0].settings.clients[0].id | tr -d '"')
   DOMAIN=$(cat ${ssl_cert_dir}/domain)
-
+  qrencode_GL
+  
   print_ok "=====================Xray链接======================"
-  echo "URL 链接（VLESS + grpc +  TLS）"
+  echo -e "URL 链接（VLESS + grpc +  TLS）"
   #echo "vless://$UUID@$DOMAIN:443?encryption=none&flow=xtls-rprx-direct-udp443&security=tls&type=grpc&serviceName=$DOMAIN&mode=gun#grpc_$DOMAIN"
   echo "vless://$UUID@$DOMAIN:443?encryption=none&security=tls&type=grpc&serviceName=$DOMAIN&mode=gun#grpc_$DOMAIN"
   
-  qrencode_GL "vless://$UUID@$DOMAIN:443?encryption=none&security=tls&type=grpc&serviceName=$DOMAIN&mode=gun#grpc_$DOMAIN"
+  #qrencode_GL "vless://$UUID@$DOMAIN:443?encryption=none&security=tls&type=grpc&serviceName=$DOMAIN&mode=gun#grpc_$DOMAIN"
+  rm -rf /www/xray_web/qrencode
+  mkdir /www/xray_web/qrencode
+  UUID=$(cat /proc/sys/kernel/random/uuid)
+  qrencode  -o "/www/xray_web/qrencode/${UUID}.png" "vless://$UUID@$DOMAIN:443?encryption=none&security=tls&type=grpc&serviceName=$DOMAIN&mode=gun#grpc_$DOMAIN"
+
+  echo -e "\n二维码链接：\nhttps://$DOMAIN/qrencode/${UUID}.png"
   print_ok "=====================Xray链接======================"
 }
 
@@ -798,16 +827,11 @@ function xray_link() {
 function qrencode_GL() {
 	if [[ $(dpkg -l | grep -w qrencode) ]];
 	then
-	      rm -rf /www/xray_web/qrencode
-	      mkdir /www/xray_web/qrencode
-	      UUID=$(cat /proc/sys/kernel/random/uuid)
-		qrencode  -o "/www/xray_web/qrencode/${UUID}.png" $1
-		echo ""
-		echo "二维码链接：https://$DOMAIN/qrencode/${UUID}.png"
+	      echo ""
 	else
-		echo -e "${Red}系统未安装二维码qrencode，开始安装qrencode${EndColor}"
+		echo -e "\n${Red}系统未安装二维码qrencode，开始安装qrencode${EndColor}"
+		check_system
 		$INS install -y qrencode
-		qrencode_GL $1
 	     #exit 1
 	fi
 }
