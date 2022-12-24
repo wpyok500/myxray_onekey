@@ -798,9 +798,12 @@ function xray_link() {
 function qrencode_GL() {
 	if [[ $(dpkg -l | grep -w qrencode) ]];
 	then
-		qrencode  -o "/www/xray_web/xray.png" $1
+	      rm -rf /www/xray_web/qrencode
+	      mkdir /www/xray_web/qrencode
+	      UUID=$(cat /proc/sys/kernel/random/uuid)
+		qrencode  -o "/www/xray_web/qrencode/${UUID}.png" $1
 		echo ""
-		echo "二维码链接：https://$DOMAIN/xray.png"
+		echo "二维码链接：https://$DOMAIN/qrencode/${UUID}.png"
 	else
 		echo -e "${Red}系统未安装二维码qrencode，开始安装qrencode${EndColor}"
 		$INS install -y qrencode
