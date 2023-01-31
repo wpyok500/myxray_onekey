@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.1.3"
+shell_version="1.1.4"
 current_version=""
 last_version=""
 xray_conf_dir="/usr/local/etc/xray"
@@ -107,7 +107,8 @@ server
     server_name _;
     index index.php index.html index.htm default.php default.htm default.html;
     root /www/xray_web;
-
+    charset utf-8;
+    
     add_header Strict-Transport-Security "max-age=63072000" always;
     
     #禁止访问的文件或目录
@@ -241,7 +242,7 @@ function update_sh() {
     read -r update_confirm
     case $update_confirm in
     [yY][eE][sS] | [yY])
-      wget -N --no-check-certificate -q "https://raw.githubusercontent.com/wpyok500/myxray_onekey/main/xray_grpc.sh" && chmod +x xray_grpc.sh
+      wget -N --no-check-certificate -q "https://raw.githubusercontent.com/wpyok500/myxray_onekey/main/xray_grpc.sh" && chmod +x myxui.sh
       echo -e "${Blue}更新完成${EndColor}"
       #echo -e "您可以通过 bash $0 执行本程序"
       bash $0
@@ -700,6 +701,7 @@ server
     server_name _;
     index index.php index.html index.htm default.php default.htm default.html;
     root /www/xray_web;
+    charset utf-8;
     
     #SSL-START SSL相关配置，请勿删除或修改下一行带注释的404规则
     #error_page 404/404.html;
