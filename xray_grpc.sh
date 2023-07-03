@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.1.4"
+shell_version="1.1.5"
 current_version=""
 last_version=""
 xray_conf_dir="/usr/local/etc/xray"
@@ -813,13 +813,13 @@ function xray_link() {
   print_ok "=====================Xray链接======================"
   echo -e "URL 链接（VLESS + grpc +  TLS）"
   #echo "vless://$UUID@$DOMAIN:443?encryption=none&flow=xtls-rprx-direct-udp443&security=tls&type=grpc&serviceName=$DOMAIN&mode=gun#grpc_$DOMAIN"
-  echo "vless://$UUID@$DOMAIN:443?encryption=none&security=tls&type=grpc&serviceName=$DOMAIN&mode=gun#grpc_$DOMAIN"
+  echo "vless://$UUID@$DOMAIN:443?encryption=none&security=tls&type=grpc&serviceName=$DOMAIN&sni=$DOMAIN&mode=gun#grpc_$DOMAIN"
   
   #qrencode_GL "vless://$UUID@$DOMAIN:443?encryption=none&security=tls&type=grpc&serviceName=$DOMAIN&mode=gun#grpc_$DOMAIN"
   rm -rf /www/xray_web/qrencode
   mkdir /www/xray_web/qrencode
   quuid=$(cat /proc/sys/kernel/random/uuid)
-  qrencode  -o "/www/xray_web/qrencode/${quuid}.png" "vless://$UUID@$DOMAIN:443?encryption=none&security=tls&type=grpc&serviceName=$DOMAIN&mode=gun#grpc_$DOMAIN"
+  qrencode  -o "/www/xray_web/qrencode/${quuid}.png" "vless://$UUID@$DOMAIN:443?encryption=none&security=tls&type=grpc&serviceName=$DOMAIN&sni=$DOMAIN&mode=gun#grpc_$DOMAIN"
 
   echo -e "\n二维码链接：\nhttps://$DOMAIN/qrencode/${quuid}.png"
   print_ok "=====================Xray链接======================"
