@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.1.5"
+shell_version="1.1.6"
 current_version=""
 last_version=""
 xray_conf_dir="/usr/local/etc/xray"
@@ -735,9 +735,9 @@ server
         client_body_timeout 52w;
         grpc_read_timeout 52w;
         #以前github仓推荐配置，注意xray配置也需修改listen
-        #grpc_pass grpc://127.0.0.1:2002;
+        grpc_pass grpc://127.0.0.1:2002;
         #现在github仓推荐配置，注意xray配置也需修改listen
-        grpc_pass unix:/dev/shm/Xray-VLESS-gRPC.socket;
+        #grpc_pass unix:/dev/shm/Xray-VLESS-gRPC.socket;
     }
 }
 EOF
@@ -755,10 +755,10 @@ function createxrayconf() {
   "inbounds": [
     {
       //以前github仓推荐配置，注意nginx配置也需修改grpc_pass
-      //"port": 2002,
-      //"listen": "127.0.0.1",
+      "port": 2002,
+      "listen": "127.0.0.1",
       //现在github仓推荐配置，注意nginx配置也需修改grpc_pass
-      "listen": "/dev/shm/Xray-VLESS-gRPC.socket,0666",
+      //"listen": "/dev/shm/Xray-VLESS-gRPC.socket,0666",
       "protocol": "vless",
       "settings": {
         "clients": [
