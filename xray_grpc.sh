@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.1.6"
+shell_version="1.1.7"
 current_version=""
 last_version=""
 xray_conf_dir="/usr/local/etc/xray"
@@ -804,6 +804,94 @@ function createxrayconf() {
 EOF
 }
 
+function createxrayrconf() {
+  rm -rf /usr/local/etc/xray/config.json
+  DOMAIN=$(cat ${ssl_cert_dir}/domain)
+  UUID=$(cat /proc/sys/kernel/random/uuid)
+  grpcrkey=$(xray x25519)
+  privatekey=$(echo $grpcrkey | awk 'NR==1 {print $3}')
+  publicKey=$(echo $grpcrkey | awk 'NR==1 {print $6}')
+  shortIds=$(openssl rand -hex 8)
+  echo -e "${grpcrkey}"
+  cat > /usr/local/etc/xray/config.json <<-EOF
+{
+    "log": {
+        "loglevel": "warning"
+    },
+    "routing": {
+        "domainStrategy": "IPIfNonMatch",
+        "rules": [
+            {
+                "type": "field",
+                "port": "80",
+                "network": "udp",
+                "outboundTag": "block"
+            },
+            {
+                "type": "field",
+                "ip": ["geoip:private"],
+                "outboundTag": "block"
+            }
+        ]
+    },
+    "inbounds": [
+        {
+            "listen": "0.0.0.0",
+            "port": 2002,
+            "protocol": "vless",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "$UUID",
+                        "flow": ""
+                    }
+                ],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "grpc",
+                "security": "reality",
+                "realitySettings": {
+                    "show": false,
+                    "dest": "www.yahoo.com:443",
+                    "xver": 0,
+                    "serverNames": ["www.yahoo.com", "news.yahoo.com"],
+                    "privateKey": "$privatekey",
+                    "publicKey": "$publicKey",
+                    "shortIds": ["$shortIds"]
+                },
+                "grpcSettings": {
+                    "serviceName": "$DOMAIN"
+                }
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": ["http", "tls", "quic"]
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "protocol": "freedom",
+            "tag": "direct"
+        },
+        {
+            "protocol": "blackhole",
+            "tag": "block"
+        }
+    ],
+    "policy": {
+        "levels": {
+            "0": {
+                "handshake": 2,
+                "connIdle": 120
+            }
+        }
+    }
+}
+EOF
+}
+
 #链接
 function xray_link() {
   UUID=$(cat ${xray_conf_dir}/config.json | sed 's|//.*||' | jq .inbounds[0].settings.clients[0].id | tr -d '"')
@@ -824,6 +912,35 @@ function xray_link() {
   echo -e "\n二维码链接：\nhttps://$DOMAIN/qrencode/${quuid}.png"
   print_ok "=====================Xray链接======================"
 }
+
+function xrayr_link() {
+  UUID=$(cat ${xray_conf_dir}/config.json | sed 's|//.*||' | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+  DOMAIN=$(cat ${ssl_cert_dir}/domain)
+  
+  security=$(cat ${xray_conf_dir}/config.json | sed 's|//.*||' | jq .inbounds[0].streamSettings.security | tr -d '"')  &&  echo -e ${security}
+  privateKey=$(cat ${xray_conf_dir}/config.json | sed 's|//.*||' | jq .inbounds[0].streamSettings.realitySettings.privateKey | tr -d '"')  &&  echo -e ${privateKey}
+  publicKey=$(cat ${xray_conf_dir}/config.json | sed 's|//.*||' | jq .inbounds[0].streamSettings.realitySettings.publicKey | tr -d '"')  &&  echo -e ${publicKey}
+  shortIds=$(cat /usr/local/etc/xray/config.json | sed 's|//.*||' | jq .inbounds[0].streamSettings.realitySettings.shortIds | tr -d '"[]\n ')  &&  echo -e ${shortIds}
+  serviceName=$(cat ${xray_conf_dir}/config.json | sed 's|//.*||' | jq .inbounds[0].streamSettings.grpcSettings.serviceName | tr -d '"')  &&  echo -e ${serviceName}
+  portr=$(cat ${xray_conf_dir}/config.json | sed 's|//.*||' | jq .inbounds[0].port | tr -d '"')  &&  echo -e ${portr}
+  
+  qrencode_GL
+  
+  print_ok "=====================Xray链接======================"
+  echo -e "URL 链接（VLESS + grpc +  reality）"
+  echo "vless://$UUID@$DOMAIN:$portr?encryption=none&security=reality&sni=www.yahoo.com&fp=chrome&pbk=$publicKey&sid=$shortIds&spx=%2F&type=grpc&serviceName=$DOMAIN&mode=gun#grpc-reality_$DOMAIN"
+  
+  #qrencode_GL "vless://$UUID@$DOMAIN:443?encryption=none&security=tls&type=grpc&serviceName=$DOMAIN&mode=gun#grpc_$DOMAIN"
+  rm -rf /www/xray_web/qrencode
+  mkdir /www/xray_web/qrencode
+  quuid=$(cat /proc/sys/kernel/random/uuid)
+  qrencode  -o "/www/xray_web/qrencode/${quuid}.png" "vless://$UUID@$DOMAIN:$portr?encryption=none&security=reality&sni=www.yahoo.com&fp=chrome&pbk=$publicKey&sid=$shortIds&spx=%2F&type=grpc&serviceName=$DOMAIN&mode=gun#grpc-reality_$DOMAIN"
+
+  echo -e "\n二维码链接：\nhttps://$DOMAIN/qrencode/${quuid}.png"
+  print_ok "=====================Xray链接======================"
+}
+
+
 
 # 安装qrencode
 function qrencode_GL() {
@@ -988,6 +1105,8 @@ echo -e "${Green}11  更换域名"
 echo -e "${Green}12  更新xray"
 echo -e "${Green}13  更换UUID"
 echo -e "${Green}14  设置每2天自动更新xray和geoip.dat、geosite.dat${Red}[此项默认已设置]${EndColor}"
+echo -e "${Green}15  使用GRPC over Reality配置"
+echo -e "${Green}16  获取xray Reality客户端链接${EndColor}"
 echo -e "${Green}0   更新脚本${EndColor}"
 get_xray_status
 read -rp "请输入数字：" menu_num
@@ -1040,7 +1159,19 @@ read -rp "请输入数字：" menu_num
     ;;  
   14)
     autoUPxray
-    ;;      
+    ;; 
+  15)
+    chmod 777 $xray_conf_dir/config.json
+    rm -rf $xray_conf_dir/config.json
+    createxrayrconf
+    #systemctl stop xray && systemctl start xray && systemctl status xray
+    systemctl stop xray && systemctl start xray
+    xrayr_link
+    ;;
+  16)
+    #createconf
+    xrayr_link
+    ;;     
   0)
     update_sh
     ;;   
