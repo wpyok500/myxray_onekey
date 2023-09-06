@@ -1020,7 +1020,7 @@ EOF
 
 # xray reality connfig
 function initXrayr() {
-  		echo -e "${Blue}是否关闭Nginx [Y/N]?${EndColor}"
+      echo -e "${Blue}是否关闭Nginx [Y/N]?${EndColor}"
   		read -r stop_nginx
   		#read -rp "${Blue}是否关闭Nginx [Y/N]?${EndColor}" stop_nginx
 		  [ -z "$stop_nginx" ] && stop_nginx="N"
