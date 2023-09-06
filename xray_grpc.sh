@@ -15,11 +15,12 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.1.7"
+shell_version="1.1.8"
 current_version=""
 last_version=""
 xray_conf_dir="/usr/local/etc/xray"
 nginx_conf="/etc/nginx/conf.d/default.conf"
+xrayport="2002"
 
 function print_ok() {
   echo -e "${Blue}$1${EndColor}"
@@ -805,14 +806,16 @@ EOF
 }
 
 function createxrayrconf() {
+  xrayrprot=$1
+  echo -e "${xrayrprot}"
   rm -rf /usr/local/etc/xray/config.json
   DOMAIN=$(cat ${ssl_cert_dir}/domain)
   UUID=$(cat /proc/sys/kernel/random/uuid)
+  shortIds=$(openssl rand -hex 8)
   grpcrkey=$(xray x25519)
   privatekey=$(echo $grpcrkey | awk 'NR==1 {print $3}')
   publicKey=$(echo $grpcrkey | awk 'NR==1 {print $6}')
-  shortIds=$(openssl rand -hex 8)
-  echo -e "${grpcrkey}"
+  #echo -e "${grpcrkey}"
   cat > /usr/local/etc/xray/config.json <<-EOF
 {
     "log": {
@@ -837,7 +840,7 @@ function createxrayrconf() {
     "inbounds": [
         {
             "listen": "0.0.0.0",
-            "port": 2002,
+            "port": $xrayrprot,
             "protocol": "vless",
             "settings": {
                 "clients": [
@@ -1015,6 +1018,27 @@ EOF
   fi 
 }
 
+# xray reality connfig
+function initXrayr() {
+  		#echo -e "${Blue}是否关闭Nginx [Y/N]?${EndColor}"
+  		#read -r stop_nginx
+  		read -rp "${Blue}是否关闭Nginx [Y/N]?${EndColor}" stop_nginx
+		  [ -z "$stop_nginx" ] && stop_nginx="N"
+		  case $stop_nginx in
+        [yY][eE][sS] | [yY])
+		    systemctl stop nginx
+		    xrayport=443
+		    ;;
+		  *) ;;
+		  esac
+		  chmod 777 $xray_conf_dir/config.json
+      rm -rf $xray_conf_dir/config.json
+      createxrayrconf "xrayport"
+      #systemctl stop xray && systemctl start xray && systemctl status xray
+      systemctl stop xray && systemctl start xray
+      xrayr_link
+}
+
 #每2天自动更新xray
 function auto_up_xray() {
   while read -r line
@@ -1161,12 +1185,7 @@ read -rp "请输入数字：" menu_num
     autoUPxray
     ;; 
   15)
-    chmod 777 $xray_conf_dir/config.json
-    rm -rf $xray_conf_dir/config.json
-    createxrayrconf
-    #systemctl stop xray && systemctl start xray && systemctl status xray
-    systemctl stop xray && systemctl start xray
-    xrayr_link
+    initXrayr
     ;;
   16)
     #createconf
