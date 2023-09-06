@@ -1020,9 +1020,9 @@ EOF
 
 # xray reality connfig
 function initXrayr() {
-      echo -e "${Blue}是否关闭Nginx [Y/N]?${EndColor}"
-  		read -r stop_nginx
-  		#read -rp "${Blue}是否关闭Nginx [Y/N]?${EndColor}" stop_nginx
+      #echo -e "${Red}是否关闭Nginx [Y/N]?${EndColor}"
+  		#read -r stop_nginx
+  		read -rp "${Red}是否关闭Nginx [Y/N]?${EndColor}" stop_nginx
 		  [ -z "$stop_nginx" ] && stop_nginx="N"
 		  case $stop_nginx in
         [yY][eE][sS] | [yY])
@@ -1033,7 +1033,7 @@ function initXrayr() {
 		  esac
 		  chmod 777 $xray_conf_dir/config.json
       rm -rf $xray_conf_dir/config.json
-      createxrayrconf "xrayport"
+      createxrayrconf "${xrayport}"
       #systemctl stop xray && systemctl start xray && systemctl status xray
       systemctl stop xray && systemctl start xray
       xrayr_link
