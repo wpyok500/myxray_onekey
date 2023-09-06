@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.1.8"
+shell_version="1.1.9"
 current_version=""
 last_version=""
 xray_conf_dir="/usr/local/etc/xray"
@@ -1131,6 +1131,7 @@ echo -e "${Green}13  更换UUID"
 echo -e "${Green}14  设置每2天自动更新xray和geoip.dat、geosite.dat${Red}[此项默认已设置]${EndColor}"
 echo -e "${Green}15  使用GRPC over Reality配置"
 echo -e "${Green}16  获取xray Reality客户端链接${EndColor}"
+echo -e "${Green}17  使用GRPC 默认配置"
 echo -e "${Green}0   更新脚本${EndColor}"
 get_xray_status
 read -rp "请输入数字：" menu_num
@@ -1190,7 +1191,13 @@ read -rp "请输入数字：" menu_num
   16)
     #createconf
     xrayr_link
-    ;;     
+    ;;
+  17)
+    createxrayconf
+    systemctl stop xray && systemctl start xray
+    systemctl restart nginx
+    xray_link
+    ;;       
   0)
     update_sh
     ;;   
