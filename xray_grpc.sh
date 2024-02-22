@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.1.9"
+shell_version="1.2.0"
 current_version=""
 last_version=""
 xray_conf_dir="/usr/local/etc/xray"
@@ -682,9 +682,13 @@ get_xray_status() {
   if [[ -f '/usr/local/bin/xray' ]]; then
     current_version="$(/usr/local/bin/xray -version | awk 'NR==1 {print $2}')"
     run_status="$(systemctl status xray | awk 'NR==5 {print $2 $3}')"
+    nginx_status="$(systemctl status nginx | awk 'NR==3 {print $2 $3}')"
 
     echo -e "当前Xray版本：${current_version}  运行状态：${run_status}"
+    echo -n "$(nginx -v)"
+    echo -e "nginx运行状态：${run_status}"
     echo -e "本地脚本版本：${shell_version}"
+    
     #current_version="v${current_version#v}"
   else
     current_version=""
@@ -744,6 +748,7 @@ server
 EOF
 }
 
+# grpc 
 function createxrayconf() {
   rm -rf /usr/local/etc/xray/config.json
   DOMAIN=$(cat ${ssl_cert_dir}/domain)
@@ -805,6 +810,7 @@ function createxrayconf() {
 EOF
 }
 
+# grpc reality
 function createxrayrconf() {
   xrayrprot=$1
   echo -e "${xrayrprot}"
@@ -856,9 +862,9 @@ function createxrayrconf() {
                 "security": "reality",
                 "realitySettings": {
                     "show": false,
-                    "dest": "www.yahoo.com:443",
+                    "dest": "www.bing.com:443",
                     "xver": 0,
-                    "serverNames": ["www.yahoo.com", "news.yahoo.com"],
+                    "serverNames": ["www.bing.com", "cn.bing.com"],
                     "privateKey": "$privatekey",
                     "publicKey": "$publicKey",
                     "shortIds": ["$shortIds"]
@@ -931,13 +937,13 @@ function xrayr_link() {
   
   print_ok "=====================Xray链接======================"
   echo -e "URL 链接（VLESS + grpc +  reality）"
-  echo "vless://$UUID@$DOMAIN:$portr?encryption=none&security=reality&sni=www.yahoo.com&fp=chrome&pbk=$publicKey&sid=$shortIds&spx=%2F&type=grpc&serviceName=$DOMAIN&mode=gun#grpc-reality_$DOMAIN"
+  echo "vless://$UUID@$DOMAIN:$portr?encryption=none&security=reality&sni=www.bing.com&fp=chrome&pbk=$publicKey&sid=$shortIds&spx=%2F&type=grpc&serviceName=$DOMAIN&mode=gun#grpc-reality_$DOMAIN"
   
   #qrencode_GL "vless://$UUID@$DOMAIN:443?encryption=none&security=tls&type=grpc&serviceName=$DOMAIN&mode=gun#grpc_$DOMAIN"
   rm -rf /www/xray_web/qrencode
   mkdir /www/xray_web/qrencode
   quuid=$(cat /proc/sys/kernel/random/uuid)
-  qrencode  -o "/www/xray_web/qrencode/${quuid}.png" "vless://$UUID@$DOMAIN:$portr?encryption=none&security=reality&sni=www.yahoo.com&fp=chrome&pbk=$publicKey&sid=$shortIds&spx=%2F&type=grpc&serviceName=$DOMAIN&mode=gun#grpc-reality_$DOMAIN"
+  qrencode  -o "/www/xray_web/qrencode/${quuid}.png" "vless://$UUID@$DOMAIN:$portr?encryption=none&security=reality&sni=www.bing.com&fp=chrome&pbk=$publicKey&sid=$shortIds&spx=%2F&type=grpc&serviceName=$DOMAIN&mode=gun#grpc-reality_$DOMAIN"
 
   echo -e "\n二维码链接：\nhttps://$DOMAIN/qrencode/${quuid}.png"
   print_ok "=====================Xray链接======================"
@@ -1018,19 +1024,19 @@ EOF
   fi 
 }
 
-# xray reality connfig
+# xray reality connfig 不能开启nginx 
 function initXrayr() {
-      echo -e "${Red}是否关闭Nginx [Y/N]?${EndColor}"
-  		read -r stop_nginx
+      # echo -e "${Red}是否关闭Nginx [Y/N]?${EndColor}"
+  		# read -r stop_nginx
   		#read -rp "${Red}是否关闭Nginx [Y/N]?${EndColor}" stop_nginx
-		  [ -z "$stop_nginx" ] && stop_nginx="N"
-		  case $stop_nginx in
-        [yY][eE][sS] | [yY])
-		    systemctl stop nginx
-		    xrayport=443
-		    ;;
-		  *) ;;
-		  esac
+		  # [ -z "$stop_nginx" ] && stop_nginx="N"
+		  # case $stop_nginx in
+        # [yY][eE][sS] | [yY])
+		    # systemctl stop nginx
+		    xrayport=8443
+		    # ;;
+		  # *) ;;
+		  # esac
 		  chmod 777 $xray_conf_dir/config.json
       rm -rf $xray_conf_dir/config.json
       createxrayrconf "${xrayport}"
