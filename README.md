@@ -36,7 +36,7 @@ wget -N --no-check-certificate -q "https://raw.githubusercontent.com/wpyok500/my
 
 脚本主要参考自https://github.com/wulabing/Xray_onekey，特此感谢大佬。
 
-···
+```
 installXrayService() {
     echoContent skyBlue "\n进度  $1/${totalProgress} : 配置Xray开机自启"
     if [[ -n $(find /bin /usr/bin -name "systemctl") ]]; then
@@ -63,4 +63,5 @@ EOF
         echo -e " ---> 配置Xray开机自启成功"
     fi
 }
-···
+```
+
