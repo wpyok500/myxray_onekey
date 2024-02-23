@@ -35,3 +35,32 @@ wget -N --no-check-certificate -q "https://raw.githubusercontent.com/wpyok500/my
 
 
 脚本主要参考自https://github.com/wulabing/Xray_onekey，特此感谢大佬。
+
+···
+installXrayService() {
+    echoContent skyBlue "\n进度  $1/${totalProgress} : 配置Xray开机自启"
+    if [[ -n $(find /bin /usr/bin -name "systemctl") ]]; then
+        rm -rf /etc/systemd/system/xray.service
+        touch /etc/systemd/system/xray.service
+        execStart='/etc/v2ray-agent/xray/xray run -confdir /etc/v2ray-agent/xray/conf'
+        cat <<EOF >/etc/systemd/system/xray.service
+[Unit]
+Description=Xray Service
+Documentation=https://github.com/xtls
+After=network.target nss-lookup.target
+[Service]
+User=root
+ExecStart=${execStart}
+Restart=on-failure
+RestartPreventExitStatus=23
+LimitNPROC=10000
+LimitNOFILE=1000000
+[Install]
+WantedBy=multi-user.target
+EOF
+        systemctl daemon-reload
+        systemctl enable xray.service
+        echo -e " ---> 配置Xray开机自启成功"
+    fi
+}
+···
