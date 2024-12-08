@@ -15,7 +15,7 @@ EndColor="\033[0m"
 cronpath="/var/spool/cron/crontabs"
 isins=0 #是否检查系统
 isnginx=0 #是否重启nginx
-shell_version="1.2.0"
+shell_version="1.2.1"
 current_version=""
 last_version=""
 xray_conf_dir="/usr/local/etc/xray"
@@ -901,6 +901,8 @@ function createxrayrconf() {
 EOF
 }
 
+
+
 #链接
 function xray_link() {
   UUID=$(cat ${xray_conf_dir}/config.json | sed 's|//.*||' | jq .inbounds[0].settings.clients[0].id | tr -d '"')
@@ -1024,6 +1026,15 @@ EOF
   fi 
 }
 
+#创建grpc tcp配置
+function initXray() {
+  createxrayconf
+  nginx -s reload &&  systemctl restart nginx
+  systemctl stop xray && systemctl start xray
+  xray_link
+  echo "请在CDN开启GRPC开关，同时也可以开启CDN代理"
+}
+
 # xray reality connfig 不能开启nginx 
 function initXrayr() {
       # echo -e "${Red}是否关闭Nginx [Y/N]?${EndColor}"
@@ -1105,18 +1116,19 @@ function install_myxui() {
 	echo -e  "${Blue}下载更新 geoip.dat and geosite.dat${EndColor}"
 	bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install-geodata
 	systemctl stop xray
-	createnginxconf
-	createxrayconf
-	nginx -s reload &&  systemctl restart nginx
 	#xray run /usr/local/etc/xray/config.json
-	systemctl start xray
+	#创建nginx配置文件
+	createnginxconf
+	#创建xray配置文件
+	#initXray
+	initXrayr
+	
 	echo -e "设置每2天自动更新xray和geoip.dat、geosite.dat"
 	autoUPxray
 	echo -e  "${Blue}全部安装完成${EndColor}"
 	echo -e "${Purple}公钥文件路径： $ssl_cert_dir/fullchain.cer ${EndColor}"
-  echo -e "${Purple}密钥文件路径： $ssl_cert_dir/$domain.key ${EndColor}"
-  xray_link
-  echo "请在CDN开启GRPC开关，同时也可以开启CDN代理"
+     echo -e "${Purple}密钥文件路径： $ssl_cert_dir/$domain.key ${EndColor}"
+     
 }
 
 menu() {
@@ -1137,7 +1149,7 @@ echo -e "${Green}13  更换UUID"
 echo -e "${Green}14  设置每2天自动更新xray和geoip.dat、geosite.dat${Red}[此项默认已设置]${EndColor}"
 echo -e "${Green}15  使用GRPC over Reality配置"
 echo -e "${Green}16  获取xray Reality客户端链接${EndColor}"
-echo -e "${Green}17  使用GRPC 默认配置"
+echo -e "${Green}17  使用GRPC TCP配置"
 echo -e "${Green}0   更新脚本${EndColor}"
 get_xray_status
 read -rp "请输入数字：" menu_num
@@ -1199,10 +1211,7 @@ read -rp "请输入数字：" menu_num
     xrayr_link
     ;;
   17)
-    createxrayconf
-    systemctl stop xray && systemctl start xray
-    systemctl restart nginx
-    xray_link
+    initXray
     ;;       
   0)
     update_sh
