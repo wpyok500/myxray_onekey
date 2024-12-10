@@ -1,1 +1,15 @@
-
+``````
+cat xray_releases |  jq '.[0:1]' 
+cat xray_releases |  jq '.[].url'
+cat xray_releases | jq '.[] | .["url"]'
+cat xray_releases |  jq '.[]' |jq -r [keys]
+cat xray_releases |  jq '.[]' |jq '.assets'
+cat xray_releases | jq '.[0].node_id' 
+cat xray_releases |  jq '.[]' |jq '.assets' | jq '.[0].url'
+cat xray_releases |  jq '.[]' |jq '.assets[0].url'
+cat xray_releases |  jq '.[]' | jq '.url'
+cat xray_releases | jq '.[0].url' 
+cat xray_releases | jq '.[0].author.login' 
+cat xray_releases | jq '.[0].assets' | jq .[0].url
+cat xray_releases | jq '.[0].prerelease' 
+``````
