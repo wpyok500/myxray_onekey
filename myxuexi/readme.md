@@ -21,4 +21,10 @@ wget -qO- -t1 -T2 "https://api.github.com/repos/2dust/v2rayN/releases/latest" | 
 releases_list=($(wget -qO- -t1 -T2 "https://api.github.com/repos/2dust/v2rayN/releases" | grep "tag_name" |  awk -F '"' '{print $4}')) && echo  xray最新版本：${releases_list[0]/v/}
 
 wget -qO- -t1 -T2 "https://api.github.com/repos/2dust/v2rayN/releases" | grep "tag_name" |  awk -F '"' '{print $4}'
+
+# 下载xray_releases  json文档
+  wget -N --no-check-certificate -q "https://api.github.com/repos/XTLS/Xray-core/releases" -O xray_releases  && chmod  777 xray_releases
+  #获取最新版本
+  tmp_file=xray_releases && releases_list=($(sed 'y/,/\n/' "$tmp_file" | grep 'tag_name' | awk -F '"' '{print $4}')) && echo  xray最新版本：${releases_list[0]/v/}
+  last_version=${releases_list[0]/v/}
 ```
