@@ -35,7 +35,7 @@ wget -qO- -t1 -T2 "https://api.github.com/repos/2dust/v2rayN/releases" | grep "t
 
 ```
 @echo off
-title NapCatQQ更新脚本 by 福建-兮
+title NapCatQQ更新脚本
 rem color 1f
 SETLOCAL ENABLEDELAYEDEXPANSION 
 rem 使用了 curl jq unzip cat 框架
