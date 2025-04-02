@@ -80,10 +80,10 @@ rem wget -E --header="Host: [要访问的服务器IP]:[服务器HTTP端口]"
 call :setcolor 0a 开始下载文件。。。。。。
 echo.
 set url=%githubproxy%!str!
-bin\curl !url! -o nfwo.zip 
+bin\curl !url! -o updata.zip 
 echo 下载完成
 echo 解压napcatqq
-bin\unzip -o nfwo.zip
+bin\unzip -o updata.zip
 rem echo NapCatQQ已更新成!str1!
 call :setcolor 0a NapCatQQ已更新成!str1!
 
