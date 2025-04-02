@@ -35,23 +35,36 @@ wget -qO- -t1 -T2 "https://api.github.com/repos/2dust/v2rayN/releases" | grep "t
 
 ```
 @echo off
-title NapCatQQ更新脚本
+title NapCatQQ更新脚本 by 福建-兮
 rem color 1f
 SETLOCAL ENABLEDELAYEDEXPANSION 
+rem 使用了 curl jq unzip cat 框架
+echo.
+rem 设置github 代理地址
+set githubproxy=https://gh-proxy.com/
+echo [91m如果无法下载请自行寻找github代理地址设置[0m
+echo.
 
-rem curl jq unzip cat
-
-echo 下载github releases 记录文件
+call :setcolor 0a "下载github releases 记录文件"
+echo.
 REM wget -N --no-check-certificate -q "https://api.github.com/repos/NapNeko/NapCatQQ/releases" -O "c:\napcatqq"
 rem wget -N --no-check-certificate -q "https://api.github.com/repos/NapNeko/NapCatQQ/releases" -O napcatqq
 bin\curl "https://api.github.com/repos/NapNeko/NapCatQQ/releases" -o napcatqq
-
-for /F "tokens=1*" %%i in ('bin\cat napcatqq ^| bin\jq '.[0].name' ') do ( 
+echo.
+for /F "tokens=1*" %%i in ('bin\cat napcatqq ^| bin\jq '.[0].tag_name' ') do ( 
 	set str1=%%i %%j
 	rem @echo 获取!str1!下载地址：
-	call :setcolor 0C 获取!str1!下载地址：
+	call :setcolor 0C github最新版本：!str1:v=!
 )
 
+for /F "delims=" %%i in ('cat ".\LL\plugins\NapCatQQ\manifest.json" ^| jq .version') do set str2=%%i
+call :setcolor 0b  NapCatQQ当前版本：!str2!
+echo.
+echo [92m不更新或要退出请直接关闭窗口[0m, 按任意键 下载github releases最新版本。 
+echo.
+pause
+
+call :setcolor 0C "获取NapCatQQ !str1!下载地址："
 REM for /f "delims=" %t in ('cat c:\napcatqq ^| jq '.[0].assets' ^| jq .[0].browser_download_url') do set str=%t
 REM for /f "delims=" %t in ('"cat c:\napcatqq | jq '.[0].assets' | jq .[0].browser_download_url"') do set str=%t
 for /F "tokens=1" %%i in ('bin\cat napcatqq ^| bin\jq '.[0].assets' ^| bin\jq .[0].browser_download_url') do ( 
@@ -64,14 +77,15 @@ for /F "tokens=1" %%i in ('bin\cat napcatqq ^| bin\jq '.[0].assets' ^| bin\jq .[
 	) 
 )
 rem wget -E --header="Host: [要访问的服务器IP]:[服务器HTTP端口]"
-echo 开始下载文件。。。。。。
-set url=https://gh-proxy.com/!str!
+call :setcolor 0a 开始下载文件。。。。。。
+echo.
+set url=%githubproxy%!str!
 bin\curl !url! -o nfwo.zip 
 echo 下载完成
 echo 解压napcatqq
 bin\unzip -o nfwo.zip
 rem echo NapCatQQ已更新成!str1!
-call :setcolor 0C NapCatQQ已更新成!str1!
+call :setcolor 0a NapCatQQ已更新成!str1!
 
 pause
 
