@@ -87,6 +87,8 @@ echo 解压napcatqq
 bin\unzip -o updata.zip
 rem echo NapCatQQ已更新成!str1!
 bin\chmod 777 NapCatWinBootHook.dll
+rem unzip -o updata.zip "LL/plugins/NapCatQQ/*"
+rem mv LL/plugins/NapCatQQ  NapCatQQ
 call :setcolor 0a NapCatQQ已更新成!str1!
 
 pause
