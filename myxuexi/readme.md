@@ -54,11 +54,12 @@ echo.
 for /F "tokens=1*" %%i in ('bin\cat napcatqq ^| bin\jq '.[0].tag_name' ') do ( 
 	set str1=%%i %%j
 	rem @echo 获取!str1!下载地址：
-	call :setcolor 0C github最新版本：!str1:v=!
+	call :setcolor 0C Github最新版本：!str1:v=!
 )
-
-for /F "delims=" %%i in ('cat ".\LL\plugins\NapCatQQ\manifest.json" ^| jq .version') do set str2=%%i
-call :setcolor 0b  NapCatQQ当前版本：!str2!
+if exist ".\LL\plugins\NapCatQQ\manifest.json" (
+	for /F "delims=" %%i in ('cat ".\LL\plugins\NapCatQQ\manifest.json" ^| jq .version') do set str2=%%i
+	call :setcolor 0b  NapCatQQ当前版本：!str2!
+)
 echo.
 echo [92m不更新或要退出请直接关闭窗口[0m, 按任意键 下载github releases最新版本。 
 echo.
